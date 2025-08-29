@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+
+
+<body class="bg-light">
+
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="card shadow-lg" style="max-width: 400px; width: 100%;">
+            <video id="cameraVideo" autoplay muted playsinline
+                style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></video>
+            <div class="card-body text-center">
+                <h5 class="card-title">Bienvenido a Yobo</h5>
+                <input id="username" type="text" class="form-control" placeholder="Nombre" aria-label="First name"><br>
+                <button id="btn-init-chat" class="btn btn-primary">Unirte a la llamada</button>
+            </div>
+        </div>
+    </div>
+
+    <!--toast-->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="M400-480Zm240 320H467q13-18 22.5-38t16.5-42h134v-480H160v131q-22 6-42 15.5T80-551v-169q0-33 23.5-56.5T160-800h480q33 0 56.5 23.5T720-720v180l160-160v440L720-420v180q0 33-23.5 56.5T640-160Zm-400 40q-83 0-141.5-58.5T40-320q0-83 58.5-141.5T240-520q83 0 141.5 58.5T440-320q0 83-58.5 141.5T240-120Zm0-80q8 0 14-6t6-14q0-8-6-14t-14-6q-8 0-14 6t-6 14q0 8 6 14t14 6Zm-20-80h40v-160h-40v160Z"/></svg>
+                <strong class="me-auto"> Camara</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+               <p>Para acceder a la video entrevista es necesario tener la cámara encendida </p>
+               <p>No se pudo acceder a la cámara: Permiso denegado.</p>
+               
+            </div>
+        </div>
+    </div>
+
+
+</body>
+<script src="/assets/jquery/jquery-3.7.1.min.js"></script>
+<script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/camera.js"></script>
+<script>
+
+    $('#btn-init-chat').on('click', function () {
+        let username = $('#username').val();
+        window.location.href = `/chat?name=${username}`;
+    });
+
+</script>
+
+</html>

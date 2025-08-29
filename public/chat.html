@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/caht.css">
+
+<body>
+
+    <div id="cameraBox">
+        <video id="cameraVideo" autoplay muted playsinline
+            style="width: 100%; height: 100%; object-fit: cover;"></video>
+    </div>
+
+    <div id="textBotContent">
+        <p id="transcription">Transcripción: </p><br>
+        <p id="question">Bot:</p>
+    </div>
+
+    <div id="controls">
+        <!--<button onclick="toggleRecording()" id="startBtn">🔴 Iniciar Grabación</button>-->
+        <!--<ng-content select="[selector]"></ng-content><a id="downloadLink" style="display:none;" download="entrevista.webm">Descargar Entrevista</a>-->
+        <button id="recordBtn">Mantén presionado para hablar</button>
+        <!--<button onclick="toggleCamera()" id="cameraBtn">📷 Encender Cámara</button>-->
+    </div>
+
+</body>
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script src="/js/cameraChat.js"></script>
+<script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three/build/three.module.js"
+      }
+    }
+</script>
+
+<script type="module">
+    import { recognizer, synthesizer } from '/js/azureTTS.js'
+    import { generateChatResponse, getchatHistory } from '/js/openIA.js'
+    import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+
+    function init() {
+        toggleCamera();
+        animate();
+        setTimeout(function () {
+            saludo()
+        }, 3000);
+
+    }
+    window.addEventListener('DOMContentLoaded', init);
+
+    function detectPlatform() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+        if (/android/i.test(ua)) {
+            return "Android";
+        }
+
+        // iOS detection
+        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+            return "iOS";
+        }
+
+        if (/Win/.test(navigator.platform)) {
+            return "Windows";
+        }
+
+        if (/Mac/.test(navigator.platform)) {
+            return "Mac";
+        }
+
+        if (/Linux/.test(navigator.platform)) {
+            return "Linux";
+        }
+
+        return "Desconocido";
+    }
+
+
+    const transcriptionDiv = document.getElementById('transcription');
+    const recordBtn = document.getElementById('recordBtn');
+    const questionBot = document.getElementById('question');
+
+    let fullTranscription = "";
+ 
+    let platform = detectPlatform()
+    console.log('platform => ', platform);
+
+    if (platform == 'Android' || platform == 'iOS') {
+
+         recordBtn.addEventListener('touchstart', () => {
+            console.log("grabando audiuo");
+
+            transcriptionDiv.textContent = "🎤 Grabando...";
+            recognizer.startContinuousRecognitionAsync();
+
+        });
+
+        recordBtn.addEventListener('touchend', async () => {
+            console.log("audiuo");
+            recognizer.stopContinuousRecognitionAsync();
+            transcriptionDiv.textContent = "procesando...";
+            setTimeout(async function () {
+                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                console.log('enviando a Open ia: ', fullTranscription);
+                let bot = await generateChatResponse(fullTranscription);
+                let chat = await getchatHistory();
+                console.log('chat : ', chat);
+
+                questionBot.textContent = "Bot: " + bot;
+                speakAvatar(bot)
+                fullTranscription = "";
+            }, 3000);
+
+        });
+
+    } else {
+
+        recordBtn.addEventListener('mousedown', () => {
+            console.log("grabando audiuo");
+
+            transcriptionDiv.textContent = "🎤 Grabando...";
+            recognizer.startContinuousRecognitionAsync();
+
+        });
+
+        recordBtn.addEventListener('mouseup', async () => {
+            console.log("audiuo");
+            recognizer.stopContinuousRecognitionAsync();
+            transcriptionDiv.textContent = "procesando...";
+            setTimeout(async function () {
+                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                console.log('enviando a Open ia: ', fullTranscription);
+                let bot = await generateChatResponse(fullTranscription);
+                let chat = await getchatHistory();
+                console.log('chat : ', chat);
+
+                questionBot.textContent = "Bot: " + bot;
+                speakAvatar(bot)
+                fullTranscription = "";
+            }, 3000);
+
+        });
+    }
+
+
+
+    // Evento cuando se reconoce texto
+    recognizer.recognized = async (s, e) => {
+        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+            fullTranscription += " " + e.result.text;
+            console.log('Transcription: ', fullTranscription);
+        } else {
+            transcriptionDiv.textContent = "No se reconoció audio correctamente.";
+        }
+    };
+
+
+
+    function speakAvatar(texto) {
+
+        const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
+        const visemesArray = [];
+
+        synthesizer.visemeReceived = (s, e) => {
+            visemesArray.push({ id: e.privVisemeId, offsetMs: e.privAudioOffset / 10000 });
+        };
+
+        synthesizer.speakTextAsync(texto, result => {
+            const audio = new Audio(URL.createObjectURL(new Blob([result.audioData], { type: 'audio/mp3' })));
+            audio.pause();
+            audio.play();
+
+            let i = 0;
+            function tick() {
+                const currentTime = audio.currentTime * 1000;
+
+                if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
+                    applyViseme(visemesArray[i].id);
+                    i++;
+                } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
+                    currentMorphSil();
+                }
+                // Determinar fragmento actual y emoción
+                let currentPhrase = 0, acumTime = 0;
+                for (let j = 0; j < fragments.length; j++) {
+                    acumTime += fragments[j].length * 50;
+                    if (currentTime < acumTime) {
+                        currentPhrase = j; break;
+                    }
+                }
+
+                const emotion = detectEmotion(fragments[currentPhrase]);
+                setExpression(emotion);
+
+
+                if (i >= visemesArray.length) {
+                    currentMorphSil();
+                }
+
+                if (i < visemesArray.length) requestAnimationFrame(tick);
+
+            }
+            audio.onplay = () => tick();
+            audio.onended = () => {
+                currentMorphSil();   // Forzar visema sil
+                resetMouthSmoothFast();         // Cierra suavemente
+            };
+
+        }, error => {
+            console.log(error);
+        });
+    }
+
+    async function saludo() {
+        let bot = await generateChatResponse("");
+        speakAvatar(bot)
+        questionBot.textContent = "Bot: " + bot;
+
+    }
+</script>
+
+</html>
