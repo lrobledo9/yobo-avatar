@@ -27,7 +27,7 @@ export const generateChatResponse = async (text) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
+            "Authorization": "Bearer "
         },
         body: JSON.stringify({
             model: "gpt-4o-mini", // 👈 Aquí debes poner el modelo

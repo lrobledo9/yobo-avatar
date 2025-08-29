@@ -1,4 +1,4 @@
-const subscriptionKey = "7lwBMkxfwuUFydM6Mcx8T241VXic7iUrg3XUjyLU7yDzL660LGhLJQQJ99BHACBsN54XJ3w3AAAYACOGNBWQ";
+const subscriptionKey = "";
 const serviceRegion = "canadacentral"; 
 //TTS
  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
