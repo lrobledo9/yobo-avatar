@@ -28,12 +28,9 @@ html {
     position: fixed;
     top: 2%;
     left: 2%;
-    width: 25vw;
-    /* relativo al ancho de la pantalla */
+    width: 55vw;
     max-width: 300px;
     aspect-ratio: 4/3;
-    /* mantiene proporción */
-    border: 2px solid white;
     border-radius: 10px;
     overflow: hidden;
     z-index: 10;
@@ -79,7 +76,7 @@ html {
     padding: 0.5em 1em;
     border-radius: 8px;
     border: none;
-    background: #007bff;
+
     color: white;
     font-size: clamp(12px, 1.5vw, 16px);
     cursor: pointer;
@@ -87,10 +84,7 @@ html {
     text-align: center;
 }
 
-#controls button:hover,
-#controls a:hover {
-    background: #0056b3;
-}
+
 
 #recordBtn {
     user-select: none;
@@ -102,3 +96,11 @@ html {
     touch-action: manipulation;
     /* Mejora la interacción táctil */
 }
+
+#btnexit{
+    background: #007bff00 ;
+}
+#btnexit :hover{
+    background: #ff00001f ;
+}
+

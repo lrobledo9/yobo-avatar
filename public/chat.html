@@ -8,12 +8,13 @@
 </head>
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="/css/caht.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
 
 <body>
 
     <div id="cameraBox">
-        <video id="cameraVideo" autoplay muted playsinline
-            style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <video id="cameraVideo" autoplay muted playsinline style="width: 100%; height: 100%;"></video>
     </div>
 
     <div id="textBotContent">
@@ -22,14 +23,43 @@
     </div>
 
     <div id="controls">
+        <div class="container text-center">
+            <div class="row align-items-center">
+                <div class="col"></div>
+
+                <div class="col-auto ">
+                    <button id="recordBtn"
+                        class="btn btn-primary btn-lg rounded-circle d-flex align-items-center justify-content-center"
+                        style="width: 100px; height: 100px;">
+                        <i id="play"class="bi bi-play-fill fs-1"></i>
+                        <i id="micOn" class="bi bi-mic-fill fs-1" style="display:none;"></i>
+                        <i id="micOff" class="bi bi-mic-mute-fill fs-1" style="display:none;"></i>
+                    </button>
+                </div>
+                <div class="col text-end">
+                    <button id="btnexit" class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" height="40px"
+                            viewBox="0 -960 960 960" width="40px" fill="#EA3323">
+                            <path
+                                d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67V-380h66.67v193.33h586.66v-586.66H186.67V-580H120v-193.33q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm228.66-164.67L366.67-334l112.66-112.67H120v-66.66h359.33L366.67-626l48.66-49.33L610.67-480 415.33-284.67Z" />
+                        </svg></button>
+
+                </div>
+            </div>
+
+
+
+        </div>
+       
+
+
         <!--<button onclick="toggleRecording()" id="startBtn">🔴 Iniciar Grabación</button>-->
         <!--<ng-content select="[selector]"></ng-content><a id="downloadLink" style="display:none;" download="entrevista.webm">Descargar Entrevista</a>-->
-        <button id="recordBtn">Mantén presionado para hablar</button>
         <!--<button onclick="toggleCamera()" id="cameraBtn">📷 Encender Cámara</button>-->
     </div>
 
 </body>
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/js/cameraChat.js"></script>
 <script type="importmap">
     {
@@ -43,13 +73,12 @@
     import { recognizer, synthesizer } from '/js/azureTTS.js'
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+    let statusMic = 1;
+   
 
-    function init() {
+    function init() {  
         toggleCamera();
         animate();
-        setTimeout(function () {
-            saludo()
-        }, 3000);
 
     }
     window.addEventListener('DOMContentLoaded', init);
@@ -87,63 +116,83 @@
     const questionBot = document.getElementById('question');
 
     let fullTranscription = "";
- 
+
     let platform = detectPlatform()
     console.log('platform => ', platform);
 
     if (platform == 'Android' || platform == 'iOS') {
 
-         recordBtn.addEventListener('touchstart', () => {
+        recordBtn.addEventListener('touchstart', () => {
             console.log("grabando audiuo");
-
-            transcriptionDiv.textContent = "🎤 Grabando...";
-            recognizer.startContinuousRecognitionAsync();
+            if (statusMic == 1) {
+                $('#play').hide();
+                $('#micOn').show();
+                saludo();
+            }else{
+                transcriptionDiv.textContent = "🎤 Grabando...";
+                recognizer.startContinuousRecognitionAsync();
+            }
 
         });
 
         recordBtn.addEventListener('touchend', async () => {
             console.log("audiuo");
-            recognizer.stopContinuousRecognitionAsync();
-            transcriptionDiv.textContent = "procesando...";
-            setTimeout(async function () {
-                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
-                console.log('enviando a Open ia: ', fullTranscription);
-                let bot = await generateChatResponse(fullTranscription);
-                let chat = await getchatHistory();
-                console.log('chat : ', chat);
+            if (statusMic == 3) {
+                recognizer.stopContinuousRecognitionAsync();
+                transcriptionDiv.textContent = "procesando...";
+                setTimeout(async function () {
+                    transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                    console.log('enviando a Open ia: ', fullTranscription);
+                    let bot = await generateChatResponse(fullTranscription);
+                    let chat = await getchatHistory();
+                    console.log('chat : ', chat);
 
-                questionBot.textContent = "Bot: " + bot;
-                speakAvatar(bot)
-                fullTranscription = "";
-            }, 3000);
+                    questionBot.textContent = "Bot: " + bot;
+                    speakAvatar(bot)
+                    fullTranscription = "";
+                }, 3000);
+            }else{
+                statusMic = 3;
+            }
 
         });
 
     } else {
 
         recordBtn.addEventListener('mousedown', () => {
-            console.log("grabando audiuo");
-
-            transcriptionDiv.textContent = "🎤 Grabando...";
-            recognizer.startContinuousRecognitionAsync();
+            console.log(statusMic);
+            
+            if (statusMic == 1) {
+                $('#play').hide();
+                $('#micOn').show();
+                saludo();
+                
+            }else{
+                transcriptionDiv.textContent = "🎤 Grabando...";
+                recognizer.startContinuousRecognitionAsync();
+            }
 
         });
 
         recordBtn.addEventListener('mouseup', async () => {
-            console.log("audiuo");
-            recognizer.stopContinuousRecognitionAsync();
-            transcriptionDiv.textContent = "procesando...";
-            setTimeout(async function () {
-                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
-                console.log('enviando a Open ia: ', fullTranscription);
-                let bot = await generateChatResponse(fullTranscription);
-                let chat = await getchatHistory();
-                console.log('chat : ', chat);
+            console.log("audiuo",statusMic);
+            if (statusMic == 3) {
+                recognizer.stopContinuousRecognitionAsync();
+                transcriptionDiv.textContent = "procesando...";
+                setTimeout(async function () {
+                    transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                    console.log('enviando a Open ia: ', fullTranscription);
+                    let bot = await generateChatResponse(fullTranscription);
+                    let chat = await getchatHistory();
+                    console.log('chat : ', chat);
 
-                questionBot.textContent = "Bot: " + bot;
-                speakAvatar(bot)
-                fullTranscription = "";
-            }, 3000);
+                    questionBot.textContent = "Bot: " + bot;
+                    speakAvatar(bot)
+                    fullTranscription = "";
+                }, 3000);
+            }else{
+                statusMic = 3;
+            }
 
         });
     }
@@ -173,7 +222,6 @@
 
         synthesizer.speakTextAsync(texto, result => {
             const audio = new Audio(URL.createObjectURL(new Blob([result.audioData], { type: 'audio/mp3' })));
-            audio.pause();
             audio.play();
 
             let i = 0;
@@ -218,11 +266,20 @@
     }
 
     async function saludo() {
+        statusMic = 2;
         let bot = await generateChatResponse("");
         speakAvatar(bot)
         questionBot.textContent = "Bot: " + bot;
 
     }
+</script>
+<script>
+
+    $('#btnexit').on('click', function () {
+        let username = $('#username').val();
+        window.location.href = `/`;
+    });
+
 </script>
 
 </html>

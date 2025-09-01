@@ -1,3 +1,5 @@
+$('#micOn').hide();
+$('#micOff').hide();
 let videoStream = null;
 
 async function toggleCamera() {
@@ -13,7 +15,6 @@ async function toggleCamera() {
 
             // Mostrar cuadro
             cameraBox.style.display = "block";
-            btn.textContent = "📷 Apagar Cámara";
 
         } catch (err) {
             console.error("No se pudo acceder a la cámara:", err);
@@ -25,7 +26,6 @@ async function toggleCamera() {
 
         // Ocultar cuadro
         cameraBox.style.display = "none";
-        btn.textContent = "📷 Encender Cámara";
     }
 }
 
