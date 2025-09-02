@@ -47,8 +47,11 @@
 <script>
 
     $('#btn-init-chat').on('click', function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const vacant = urlParams.get('vacant');
+        
         let username = $('#username').val();
-        window.location.href = `/chat?name=${username}`;
+        window.location.href = `/chat?name=${username}&vacant=${vacant}`;
     });
 
 </script>

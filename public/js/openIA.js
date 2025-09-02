@@ -1,5 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
 const username = urlParams.get('name'); // "123"
+const vacant = urlParams.get('vacant');
 
 console.log(username);
 let chatHistory = [];
@@ -15,6 +16,7 @@ export const generateChatResponse = async (text) => {
         },
         body: JSON.stringify({
             "name": username,
+            "vacant":vacant,
             "chat": chatHistory
         })
     });
