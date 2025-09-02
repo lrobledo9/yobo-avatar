@@ -13,14 +13,29 @@
 
 <body>
 
-    <div id="cameraBox">
-        <video id="cameraVideo" autoplay muted playsinline style="width: 100%; height: 100%;"></video>
+
+    <div class="container" style="position: fixed;">
+        <div class="row">
+            <div class="col-lg-6">
+                <div id="cameraBox">
+                    <video id="cameraVideo" autoplay muted playsinline style="width: 100%; height: 100%;"></video>
+
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div id="textBotContent">
+                    <p id="transcription">Transcripción: </p><br>
+                    <p id="question">Bot:</p>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
-    <div id="textBotContent">
-        <p id="transcription">Transcripción: </p><br>
-        <p id="question">Bot:</p>
-    </div>
+
+
+
 
     <div id="controls">
         <div class="container text-center">
@@ -134,6 +149,9 @@
         });
 
         recordBtn.addEventListener('touchend', async () => {
+            $('#recordBtn').prop('disabled', true)
+            $('#micOff').show();
+            $('#micOn').hide();
             console.log("audiuo");
             if (statusMic == 3) {
                 recognizer.stopContinuousRecognitionAsync();
@@ -151,7 +169,6 @@
                 }, 3000);
             } else {
                 saludo();
-                statusMic = 3;
             }
 
         });
@@ -160,20 +177,22 @@
 
         recordBtn.addEventListener('mousedown', () => {
             console.log(statusMic);
+            transcriptionDiv.textContent = "🎤 Grabando...";
 
             if (statusMic == 1) {
                 $('#play').hide();
-                $('#micOn').show();
-                saludo();
-
+                $('#micOff').show();
             } else {
-                transcriptionDiv.textContent = "🎤 Grabando...";
+                
                 recognizer.startContinuousRecognitionAsync();
             }
 
         });
 
         recordBtn.addEventListener('mouseup', async () => {
+            $('#recordBtn').prop('disabled', true)
+            $('#micOff').show();
+            $('#micOn').hide();
             console.log("audiuo", statusMic);
             if (statusMic == 3) {
                 recognizer.stopContinuousRecognitionAsync();
@@ -190,7 +209,7 @@
                     fullTranscription = "";
                 }, 3000);
             } else {
-                statusMic = 3;
+                saludo();
             }
 
         });
@@ -213,14 +232,28 @@
         if (!texto) return;
 
         const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
+
+
+        let ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-ES">`;
+        ssml += `<voice name="es-MX-JorgeNeural">`;
+        ssml += `<prosody rate="30%" pitch="-5%">`
+        fragments.forEach((frag, index) => {
+            ssml += `<p>${frag}</p>`;
+            if (index < fragments.length - 1) {
+                ssml += `<break time="1ms"/>`;
+            }
+        });
+
+        ssml += `</prosody></voice></speak>`;
+
         const visemesArray = [];
 
         synthesizer.visemeReceived = (s, e) => {
             visemesArray.push({ id: e.privVisemeId, offsetMs: e.privAudioOffset / 10000 });
         };
 
-        synthesizer.speakTextAsync(
-            texto,
+        synthesizer.speakSsmlAsync(
+            ssml,
             async (result) => {
                 try {
                     // Convertir Uint8Array o Blob a ArrayBuffer
@@ -278,6 +311,9 @@
                     source.onended = () => {
                         currentMorphSil();
                         resetMouthSmoothFast();
+                        $('#micOn').show();
+                        $('#micOff').hide();
+                        $('#recordBtn').prop('disabled', false)
                         audioCtx.close(); // liberar recursos
                     };
 
@@ -292,7 +328,7 @@
     }
 
     async function saludo() {
-        statusMic = 2;
+        statusMic = 3;
         let bot = await generateChatResponse("");
         speakAvatar(bot)
         questionBot.textContent = "Bot: " + bot;

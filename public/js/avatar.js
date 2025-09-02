@@ -30,17 +30,31 @@ scene.add(light);
 
 let avatarMesh;
 const loader = new GLTFLoader();
+let headBone = null;
+let baseHeadQuat = null;
+let spineBone = null;
 //https://models.readyplayer.me/68a89d1c19e322fda4dd47c5.glb
-loader.load("https://models.readyplayer.me/68afa583e195aa99fc4b418a.glb", gltf => {
+loader.load("https://models.readyplayer.me/68b73bdb0727401620ad282a.glb", gltf => {
     avatarMesh = gltf.scene;
     avatarMesh.scale.set(3, 3, 3);
     avatarMesh.position.y = -3.8;
     scene.add(avatarMesh);
+
+    avatarMesh.traverse(obj => {
+        if (obj.isBone && obj.name.toLowerCase().includes("head")) {
+            if (obj.name === "Head") {
+                headBone = obj; // ✅ usar solo "Head"
+                baseHeadQuat = headBone.quaternion.clone();
+                console.log("Hueso encontrado:", headBone.name);
+            }
+
+        }
+    });
 });
 
 
 
-// -------------------- Parpadeo y Cabeza --------------------
+// -------------------- Parpadeo , Cabeza , Respiro --------------------
 let blinkTimer = 0, isBlinking = false, blinkProgress = 0;
 
 function setEyeBlink(value) {
@@ -54,10 +68,51 @@ function setEyeBlink(value) {
         }
     });
 }
+
+function moveHead() {
+    if (!headBone || !baseHeadQuat) return;
+
+    const time = Date.now() * 0.001;
+
+    // movimiento leve
+    const offsetQuat = new THREE.Quaternion()
+        .setFromEuler(new THREE.Euler(
+            Math.cos(time * 0.5) * 0.05, // arriba/abajo (muy leve)
+            Math.sin(time * 0.5) * 0.1,  // izquierda/derecha
+            0
+        ));
+
+    // aplicar interpolación suave sobre la rotación base
+    const finalQuat = baseHeadQuat.clone().multiply(offsetQuat);
+    headBone.quaternion.slerp(finalQuat, 0.05);
+}
+
+let breatheTimer = 0;
+
+
+function breathe() {
+  if (!avatarMesh) return;
+  breatheTimer += 0.003; // velocidad de respiración
+
+  avatarMesh.traverse(obj => {
+    if (obj.isBone) {
+      // movimientos muy sutiles para respiración
+      if (obj.name === "Spine") obj.rotation.x = Math.sin(breatheTimer) * 0.01;
+      if (obj.name === "Spine1") obj.rotation.x = Math.sin(breatheTimer + 0.5) * 0.008;
+      if (obj.name === "Spine2") obj.rotation.x = Math.sin(breatheTimer + 1) * 0.006;
+    }
+  });
+}
+
+
+
+
+
 // -------------------- Mouth Smooth --------------------
 let currentMorph = null;
+let isTalking = false;
 
-export function currentMorphSil(){
+export function currentMorphSil() {
     currentMorph = "viseme_sil";
 }
 
@@ -72,6 +127,7 @@ export function applyViseme(id) {
         20: "viseme_U", 21: "viseme_sil"
     };
     currentMorph = mapping[id] || "viseme_sil";
+    isTalking = currentMorph !== "viseme_sil";
 }
 
 function updateMouthSmooth() {
@@ -148,16 +204,11 @@ export function animate() {
         else if (blinkProgress < 2) setEyeBlink(2 - blinkProgress);
         else { isBlinking = false; setEyeBlink(0); }
     }
-
-    // Cabeza
-    if (avatarMesh) {
-        const t = Date.now() * 0.001;
-        avatarMesh.rotation.y = Math.sin(t * 0.5) * 0.05;
-        avatarMesh.rotation.x = Math.sin(t * 0.8) * 0.02;
-    }
-
+    breathe()
+    moveHead();
     // Labios suavizados
     updateMouthSmooth();
+
 
     renderer.render(scene, camera);
 }

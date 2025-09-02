@@ -54,7 +54,7 @@ async function toggleRecording() {
         };
 
         mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: "video/webm" });
+            const blob = new Blob(recordedChunks, { type: "video/mp4" });
             const url = URL.createObjectURL(blob);
 
             // Crear link de descarga
