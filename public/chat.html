@@ -31,7 +31,7 @@
                     <button id="recordBtn"
                         class="btn btn-primary btn-lg rounded-circle d-flex align-items-center justify-content-center"
                         style="width: 100px; height: 100px;">
-                        <i id="play"class="bi bi-play-fill fs-1"></i>
+                        <i id="play" class="bi bi-play-fill fs-1"></i>
                         <i id="micOn" class="bi bi-mic-fill fs-1" style="display:none;"></i>
                         <i id="micOff" class="bi bi-mic-mute-fill fs-1" style="display:none;"></i>
                     </button>
@@ -49,7 +49,7 @@
 
 
         </div>
-       
+
 
 
         <!--<button onclick="toggleRecording()" id="startBtn">🔴 Iniciar Grabación</button>-->
@@ -74,9 +74,8 @@
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
     let statusMic = 1;
-   
 
-    function init() {  
+    function init() {
         toggleCamera();
         animate();
 
@@ -127,8 +126,7 @@
             if (statusMic == 1) {
                 $('#play').hide();
                 $('#micOn').show();
-                saludo();
-            }else{
+            } else {
                 transcriptionDiv.textContent = "🎤 Grabando...";
                 recognizer.startContinuousRecognitionAsync();
             }
@@ -151,7 +149,8 @@
                     speakAvatar(bot)
                     fullTranscription = "";
                 }, 3000);
-            }else{
+            } else {
+                saludo();
                 statusMic = 3;
             }
 
@@ -161,13 +160,13 @@
 
         recordBtn.addEventListener('mousedown', () => {
             console.log(statusMic);
-            
+
             if (statusMic == 1) {
                 $('#play').hide();
                 $('#micOn').show();
                 saludo();
-                
-            }else{
+
+            } else {
                 transcriptionDiv.textContent = "🎤 Grabando...";
                 recognizer.startContinuousRecognitionAsync();
             }
@@ -175,7 +174,7 @@
         });
 
         recordBtn.addEventListener('mouseup', async () => {
-            console.log("audiuo",statusMic);
+            console.log("audiuo", statusMic);
             if (statusMic == 3) {
                 recognizer.stopContinuousRecognitionAsync();
                 transcriptionDiv.textContent = "procesando...";
@@ -190,7 +189,7 @@
                     speakAvatar(bot)
                     fullTranscription = "";
                 }, 3000);
-            }else{
+            } else {
                 statusMic = 3;
             }
 
@@ -210,8 +209,8 @@
     };
 
 
-
-    function speakAvatar(texto) {
+    async function speakAvatar(texto) {
+        if (!texto) return;
 
         const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
         const visemesArray = [];
@@ -220,49 +219,76 @@
             visemesArray.push({ id: e.privVisemeId, offsetMs: e.privAudioOffset / 10000 });
         };
 
-        synthesizer.speakTextAsync(texto, result => {
-            const audio = new Audio(URL.createObjectURL(new Blob([result.audioData], { type: 'audio/mp3' })));
-            audio.play();
-
-            let i = 0;
-            function tick() {
-                const currentTime = audio.currentTime * 1000;
-
-                if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
-                    applyViseme(visemesArray[i].id);
-                    i++;
-                } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
-                    currentMorphSil();
-                }
-                // Determinar fragmento actual y emoción
-                let currentPhrase = 0, acumTime = 0;
-                for (let j = 0; j < fragments.length; j++) {
-                    acumTime += fragments[j].length * 50;
-                    if (currentTime < acumTime) {
-                        currentPhrase = j; break;
+        synthesizer.speakTextAsync(
+            texto,
+            async (result) => {
+                try {
+                    // Convertir Uint8Array o Blob a ArrayBuffer
+                    let arrayBuffer;
+                    if (result.audioData instanceof Uint8Array) {
+                        arrayBuffer = result.audioData.buffer;
+                    } else {
+                        const blob = new Blob([result.audioData], { type: 'audio/mp3' });
+                        arrayBuffer = await blob.arrayBuffer();
                     }
+
+                    // Crear AudioContext
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                    // Decodificar
+                    const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
+
+                    // Reproducir
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = decodedData;
+                    source.connect(audioCtx.destination);
+                    source.start();
+
+                    // Animar visemas
+                    let i = 0;
+                    function tick() {
+                        const currentTime = audioCtx.currentTime * 1000;
+                        if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
+                            applyViseme(visemesArray[i].id);
+                            i++;
+                        } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
+                            currentMorphSil();
+                        }
+
+                        // Determinar emoción según fragmento
+                        let currentPhrase = 0, acumTime = 0;
+                        for (let j = 0; j < fragments.length; j++) {
+                            acumTime += fragments[j].length * 50;
+                            if (currentTime < acumTime) {
+                                currentPhrase = j; break;
+                            }
+                        }
+                        const emotion = detectEmotion(fragments[currentPhrase]);
+                        setExpression(emotion);
+
+                        if (i >= visemesArray.length) {
+                            currentMorphSil();
+                        }
+
+                        if (i < visemesArray.length) requestAnimationFrame(tick);
+                    }
+
+                    tick();
+
+                    source.onended = () => {
+                        currentMorphSil();
+                        resetMouthSmoothFast();
+                        audioCtx.close(); // liberar recursos
+                    };
+
+                } catch (err) {
+                    console.error("Error reproduciendo audio:", err);
                 }
-
-                const emotion = detectEmotion(fragments[currentPhrase]);
-                setExpression(emotion);
-
-
-                if (i >= visemesArray.length) {
-                    currentMorphSil();
-                }
-
-                if (i < visemesArray.length) requestAnimationFrame(tick);
-
+            },
+            (err) => {
+                console.error(err);
             }
-            audio.onplay = () => tick();
-            audio.onended = () => {
-                currentMorphSil();   // Forzar visema sil
-                resetMouthSmoothFast();         // Cierra suavemente
-            };
-
-        }, error => {
-            console.log(error);
-        });
+        );
     }
 
     async function saludo() {
