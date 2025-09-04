@@ -9,11 +9,7 @@
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="/css/caht.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
-
 <body>
-
-
     <div class="container" style="position: fixed;">
         <div class="row">
             <div class="col-lg-6">
@@ -28,19 +24,20 @@
                     <p id="question">Bot:</p>
                 </div>
             </div>
-
         </div>
-
     </div>
-
-
-
-
 
     <div id="controls">
         <div class="container text-center">
             <div class="row align-items-center">
-                <div class="col"></div>
+                <div class="col text-start">
+
+                    <body>
+
+                        <div id="recordingIndicator" style="display:none;">
+                            🔴
+                        </div>
+                </div>
 
                 <div class="col-auto ">
                     <button id="recordBtn"
@@ -56,19 +53,12 @@
                             viewBox="0 -960 960 960" width="40px" fill="#EA3323">
                             <path
                                 d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67V-380h66.67v193.33h586.66v-586.66H186.67V-580H120v-193.33q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm228.66-164.67L366.67-334l112.66-112.67H120v-66.66h359.33L366.67-626l48.66-49.33L610.67-480 415.33-284.67Z" />
-                        </svg></button>
-
+                        </svg>
+                    </button>
                 </div>
             </div>
-
-
-
         </div>
 
-
-
-        <!--<button onclick="toggleRecording()" id="startBtn">🔴 Iniciar Grabación</button>-->
-        <!--<ng-content select="[selector]"></ng-content><a id="downloadLink" style="display:none;" download="entrevista.webm">Descargar Entrevista</a>-->
         <!--<button onclick="toggleCamera()" id="cameraBtn">📷 Encender Cámara</button>-->
     </div>
 
@@ -141,6 +131,7 @@
             if (statusMic == 1) {
                 $('#play').hide();
                 $('#micOn').show();
+                toggleRecording();
             } else {
                 transcriptionDiv.textContent = "🎤 Grabando...";
                 recognizer.startContinuousRecognitionAsync();
@@ -180,6 +171,7 @@
             if (statusMic == 1) {
                 $('#play').hide();
                 $('#micOff').show();
+                toggleRecording();
             } else {
                 transcriptionDiv.textContent = "🎤 Grabando...";
                 recognizer.startContinuousRecognitionAsync();
@@ -337,7 +329,7 @@
 
     $('#btnexit').on('click', function () {
         let username = $('#username').val();
-        window.location.href = `/`;
+        toggleRecording();
     });
 
 </script>

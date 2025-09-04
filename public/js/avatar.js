@@ -45,7 +45,6 @@ loader.load("https://models.readyplayer.me/68b73bdb0727401620ad282a.glb", gltf =
             if (obj.name === "Head") {
                 headBone = obj; // ✅ usar solo "Head"
                 baseHeadQuat = headBone.quaternion.clone();
-                console.log("Hueso encontrado:", headBone.name);
             }
 
         }

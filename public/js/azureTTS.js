@@ -2,8 +2,10 @@ const subscriptionKey = "";
 const serviceRegion = "canadacentral"; 
 //TTS
  const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
- speechConfig.speechSynthesisVoiceName = "es-ES-AlvaroNeural";
+ speechConfig.speechSynthesisVoiceName = "es-MX-DaliaNeural";
  speechConfig.setProperty("SpeechServiceResponse_VisemeAnimation", "true");
+ speechConfig.setProperty("SpeechSynthesisVoiceStyle", "cheerful"); // o sad, angry, empathetic
+
 export const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
 
 //STT

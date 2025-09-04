@@ -96,3 +96,18 @@ html {
     background: #ff00001f ;
 }
 
+#recordingIndicator { 
+  top: 10px;
+  left: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: rgb(255, 255, 255);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
