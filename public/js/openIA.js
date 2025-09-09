@@ -1,9 +1,16 @@
 const urlParams = new URLSearchParams(window.location.search);
 const username = urlParams.get('name'); // "123"
 const vacant = urlParams.get('vacant');
+const application = urlParams.get('application');
 
-console.log(username);
 let chatHistory = [];
+
+let questionsData = null;
+const getQuestionsprompt = async () => {
+    const data = await getQuestions(application);
+    questionsData = data;
+}
+getQuestionsprompt()
 
 export const generateChatResponse = async (text) => {
 
@@ -17,6 +24,7 @@ export const generateChatResponse = async (text) => {
         body: JSON.stringify({
             "name": username,
             "vacant":vacant,
+            "questions":questionsData,
             "chat": chatHistory
         })
     });

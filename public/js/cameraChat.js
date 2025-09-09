@@ -1,6 +1,9 @@
 const urlParams = new URLSearchParams(window.location.search);
 const username = urlParams.get('name'); // "123"
-const vacant = urlParams.get('vacant');
+const vacantName = urlParams.get('vacant')
+const interviewId = urlParams.get('interview')
+
+
 $('#micOn').hide();
 $('#micOff').hide();
 let videoStream = null;
@@ -35,6 +38,7 @@ async function toggleCamera() {
 let mediaRecorder;
 let recordedChunks = [];
 let isRecording = false;
+let chatHistory = null;
 const indicator = document.getElementById("recordingIndicator");
 async function toggleRecording() {
 
@@ -58,7 +62,7 @@ async function toggleRecording() {
         mediaRecorder.onstop = () => {
             indicator.style.display = "none";
             const blob = new Blob(recordedChunks, { type: "video/mp4" });
-            let filename = `${username}-${vacant}-${new Date().getTime()}.mp4`
+            let filename = `${username}-${vacantName}-${new Date().getTime()}.mp4`
             const file = new File([blob], filename, { type: "video/mp4" });
             const formData = new FormData();
             formData.append("file", file);
@@ -70,6 +74,9 @@ async function toggleRecording() {
             }).then(async (response) => {
                 const data = await response.json();
                 console.log("STORAGE =>", data);
+                        
+                await sendDataInterview(interviewId,data.data.url, chatHistory)
+                
                 window.location.href = `/`;
             }, (err) => {
                 console.log(err);
@@ -87,4 +94,9 @@ async function toggleRecording() {
         mediaRecorder.stop();
         isRecording = false;
     }
+}
+
+
+async function setChatHistory(chat) {
+    chatHistory = chat;
 }

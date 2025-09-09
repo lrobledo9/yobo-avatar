@@ -65,7 +65,9 @@
 </body>
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
+<script src="/js/n8nService.js"></script>
 <script src="/js/cameraChat.js"></script>
+
 <script type="importmap">
     {
       "imports": {
@@ -324,14 +326,16 @@
         questionBot.textContent = "Bot: " + bot;
 
     }
-</script>
-<script>
 
-    $('#btnexit').on('click', function () {
+    $('#btnexit').on('click', async function () {
         let username = $('#username').val();
+        let chat = await getchatHistory();
+        chat.shift()
+        await setChatHistory(chat)
         toggleRecording();
     });
 
 </script>
+
 
 </html>

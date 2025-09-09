@@ -44,14 +44,16 @@
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/camera.js"></script>
+<script src="/js/n8nService.js"></script>
 <script>
-
-    $('#btn-init-chat').on('click', function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const vacant = urlParams.get('vacant');
-        
+    const urlParams = new URLSearchParams(window.location.search);
+   
+    
+    $('#btn-init-chat').on('click', async function () {
+        const application = urlParams.get('application'); // "123"
+        const dataVacant = await getVacant(application);
         let username = $('#username').val();
-        window.location.href = `/chat?name=${username}&vacant=${vacant}`;
+        window.location.href = `/chat?name=${username}&vacant=${dataVacant.vacant}&interview=${dataVacant.interviewid}&application=${dataVacant.application}`;
     });
 
 </script>
