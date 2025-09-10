@@ -28,7 +28,7 @@ async function sendDataInterview(id, url, chat) {
         "transcription": chat
     }
 
-    const response = await fetch(`https://5pm84kkq-5678.usw3.devtunnels.ms/webhook/api/interview`,
+    const response = await fetch(`https://appyobo.app.n8n.cloud/webhook/api/interview`,
         {
             method: "POST",
             headers: {
@@ -51,7 +51,7 @@ async function sendDataInterview(id, url, chat) {
 
 async function n8nService(id) {
 
-    const response = await fetch(`https://5pm84kkq-5678.usw3.devtunnels.ms/webhook/api/interview?application_id=${id}`,
+    const response = await fetch(`https://appyobo.app.n8n.cloud/webhook/api/interview?application_id=${id}`,
         {
             method: "GET",
             headers: {
