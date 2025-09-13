@@ -7,9 +7,36 @@
     <title>Document</title>
 </head>
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="/css/caht.css">
+<link rel="stylesheet" href="/css/chat.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-<body>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.23.0/dist/sweetalert2.min.css">
+  <style>
+     .fondo-color {
+      background-color: #63B31B; /* color de fondo */
+      min-height: 100vh;          /* ocupa toda la pantalla */
+      display: flex;              /* centra el contenido */
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .fondo-color img {
+      width: 147px;
+      height: auto;    /* mantiene la proporción */
+      border-radius: 100%; /* opcional: bordes redondeados */
+    }
+  </style>
+<body >
+
+    <div class="fondo-color" style="position: fixed;">
+        <div>
+            <img src="/assets/images/profile.svg" style="background-color: #63B31B">
+            <p class="text-white" style="font-size: 30px;" ><strong>YOBO</strong></p>
+        </div>
+    </div>
+
+
     <div class="container" style="position: fixed;">
         <div class="row">
             <div class="col-lg-6">
@@ -63,6 +90,7 @@
     </div>
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.23.0/dist/sweetalert2.all.min.js"></script>
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/js/n8nService.js"></script>
@@ -79,12 +107,10 @@
 <script type="module">
     import { recognizer, synthesizer } from '/js/azureTTS.js'
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
-    import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
     let statusMic = 1;
 
     function init() {
         toggleCamera();
-        animate();
 
     }
     window.addEventListener('DOMContentLoaded', init);
@@ -269,40 +295,7 @@
                     source.connect(audioCtx.destination);
                     source.start();
 
-                    // Animar visemas
-                    let i = 0;
-                    function tick() {
-                        const currentTime = audioCtx.currentTime * 1000;
-                        if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
-                            applyViseme(visemesArray[i].id);
-                            i++;
-                        } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
-                            currentMorphSil();
-                        }
-
-                        // Determinar emoción según fragmento
-                        let currentPhrase = 0, acumTime = 0;
-                        for (let j = 0; j < fragments.length; j++) {
-                            acumTime += fragments[j].length * 50;
-                            if (currentTime < acumTime) {
-                                currentPhrase = j; break;
-                            }
-                        }
-                        const emotion = detectEmotion(fragments[currentPhrase]);
-                        setExpression(emotion);
-
-                        if (i >= visemesArray.length) {
-                            currentMorphSil();
-                        }
-
-                        if (i < visemesArray.length) requestAnimationFrame(tick);
-                    }
-
-                    tick();
-
                     source.onended = () => {
-                        currentMorphSil();
-                        resetMouthSmoothFast();
                         $('#micOn').show();
                         $('#micOff').hide();
                         $('#recordBtn').prop('disabled', false)

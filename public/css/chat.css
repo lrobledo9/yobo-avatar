@@ -49,6 +49,13 @@ html {
     font-size: clamp(12px, 2vw, 18px);
 }
 
+
+/*@media (max-width: 768px )  {
+   #textBotContent{
+        margin-top: 112%;
+    }
+}*/
+
 /* Controles */
 #controls {
     position: fixed;
@@ -89,25 +96,25 @@ html {
     /* Mejora la interacción táctil */
 }
 
-#btnexit{
-    background: #007bff00 ;
-}
-#btnexit :hover{
-    background: #ff00001f ;
+#btnexit {
+    background: #007bff00;
 }
 
-#recordingIndicator { 
-  top: 10px;
-  left: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  color: rgb(255, 255, 255);
-  animation: blink 1s infinite;
+#btnexit :hover {
+    background: #ff00001f;
+}
+
+#recordingIndicator {
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    animation: blink 1s infinite;
 }
 
 @keyframes blink {
-  50% {
-    opacity: 0;
-  }
+    50% {
+        opacity: 0;
+    }
 }
-

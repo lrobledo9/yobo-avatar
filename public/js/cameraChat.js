@@ -42,7 +42,6 @@ let chatHistory = null;
 const indicator = document.getElementById("recordingIndicator");
 async function toggleRecording() {
 
-
     if (!isRecording) {
         // Verificar si hay cámara activa
         if (!videoStream) {
@@ -67,6 +66,16 @@ async function toggleRecording() {
             const formData = new FormData();
             formData.append("file", file);
 
+             Swal.fire({
+                icon: "info",
+                title: "Guardando los datos de la entrevista",
+                showConfirmButton: false,
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            })
+
 
             fetch("https://yobo-services-cqeyeuc8chfffta0.canadacentral-01.azurewebsites.net/api/v1/azure/blob/storage", {
                 method: "POST",
@@ -76,7 +85,7 @@ async function toggleRecording() {
                 console.log("STORAGE =>", data);
                         
                 await sendDataInterview(interviewId,data.data.url, chatHistory)
-                
+                Swal.close();
                 window.location.href = `/`;
             }, (err) => {
                 console.log(err);
