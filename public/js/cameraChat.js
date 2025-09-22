@@ -1,8 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
-const username = urlParams.get('name'); // "123"
-const vacantName = urlParams.get('vacant')
-const interviewId = urlParams.get('interview')
-
+const username =  localStorage.getItem('username');
+const vacantName = localStorage.getItem('vacant');
+const interviewId = localStorage.getItem('interviewid');
+console.log(interviewId, username, vacantName);
 
 $('#micOn').hide();
 $('#micOff').hide();
@@ -76,7 +76,7 @@ async function toggleRecording() {
                 console.log("STORAGE =>", data);
                         
                 await sendDataInterview(interviewId,data.data.url, chatHistory)
-                
+                localStorage.clear();
                 window.location.href = `/`;
             }, (err) => {
                 console.log(err);

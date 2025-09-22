@@ -2,6 +2,10 @@ async function getQuestions(id) {
 
     const data = await n8nService(id);
 
+    if (data == 'error') {
+        return null;
+    }
+
     let questionTxt = '';
     data.forEach(question => {
         questionAux = JSON.parse(question.question)
@@ -13,7 +17,10 @@ async function getQuestions(id) {
 }
 async function getVacant(id) {
     const data = await n8nService(id);
-    console.log(data);
+    if (data == 'error') {
+        return null;
+    }
+    
     return {
         vacant: data[0].title,
         interviewid: data[0].interview_id,
@@ -60,6 +67,10 @@ async function n8nService(id) {
         }
     );
 
-    return await response.json();
+    try {
+        return await response.json();
+    } catch (error) {
+        return "error";
+    }
 
 }

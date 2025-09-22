@@ -1,7 +1,7 @@
-const urlParams = new URLSearchParams(window.location.search);
-const username = urlParams.get('name'); // "123"
-const vacant = urlParams.get('vacant');
-const application = urlParams.get('application');
+const application = localStorage.getItem('application');
+const username =  localStorage.getItem('username');
+const vacant =  localStorage.getItem('vacant');
+console.log(application, username, vacant);
 
 let chatHistory = [];
 
