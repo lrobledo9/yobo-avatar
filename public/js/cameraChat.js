@@ -67,6 +67,16 @@ async function toggleRecording() {
             const formData = new FormData();
             formData.append("file", file);
 
+            Swal.fire({
+                icon: "info",
+                title: "Guardando los datos de la entrevista",
+                showConfirmButton: false,
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
 
             fetch("https://yobo-services-cqeyeuc8chfffta0.canadacentral-01.azurewebsites.net/api/v1/azure/blob/storage", {
                 method: "POST",
@@ -77,6 +87,8 @@ async function toggleRecording() {
                         
                 await sendDataInterview(interviewId,data.data.url, chatHistory)
                 localStorage.clear();
+                Swal.hideLoading();
+
                 window.location.href = `/`;
             }, (err) => {
                 console.log(err);

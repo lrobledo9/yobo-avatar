@@ -191,7 +191,7 @@ export function detectEmotion(texto) {
 }
 
 // -------------------- Animación --------------------
-export function animate() {
+export async function animate() {
     requestAnimationFrame(animate);
 
     // Parpadeo

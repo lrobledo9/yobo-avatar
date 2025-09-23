@@ -39,6 +39,11 @@
         </div>
     </div>
 
+    <div id="loading" class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100" style="display:none !important; ">
+        <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
 
 </body>
 <script src="/assets/sweetalert2/sweetalert2.all.min.js"></script>
@@ -49,26 +54,25 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
    
-    
     $('#btn-init-chat').on('click', async function () {
+        $('#loading').show();
         const application = urlParams.get('application'); // "123"
-        localStorage.setItem("application", application);
         const dataVacant = await getVacant(application);
         let username = $('#username').val();
         if (dataVacant == null) {
              Swal.fire({
                 title: 'Error al obtener el detalle para la entrevista!',
-                text: 'Inténtalo más tarde ',
+                text: 'Inténtalo más tarde.',
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
         }else{
-
+            $('#loading').hide();
+            localStorage.setItem("application", application);
             localStorage.setItem("vacant", dataVacant.vacant);
             localStorage.setItem("interviewid", dataVacant.interviewid);
             localStorage.setItem("username", username);
-
-            window.location.href = `/chat?name=${username}&application=${dataVacant.application}`;
+            window.location.href = `/chat`;
         }
 
        
