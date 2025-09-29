@@ -1,7 +1,6 @@
 const application = localStorage.getItem('application');
 const username =  localStorage.getItem('username');
 const vacant =  localStorage.getItem('vacant');
-console.log(application, username, vacant);
 
 let chatHistory = [];
 
@@ -11,12 +10,19 @@ const getQuestionsprompt = async () => {
     questionsData = data;
 }
 getQuestionsprompt()
+let controlador;
 
 export const generateChatResponse = async (text) => {
+    controlador?.abort();
+
+    controlador = new AbortController();
+    const signal = controlador.signal;
+
 
     console.log('Open ia request => ', text);
     chatHistory.push({ role: "user", content: text });
     const response = await fetch("https://yobo-services-cqeyeuc8chfffta0.canadacentral-01.azurewebsites.net/api/v1/openia/chat/response", {
+        signal,
         method: "POST",
         headers: {
             "Content-Type": "application/json",

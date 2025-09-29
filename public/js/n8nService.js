@@ -11,8 +11,6 @@ async function getQuestions(id) {
         questionAux = JSON.parse(question.question)
         questionTxt += `- ${questionAux.pregunta}\n`
     });
-    console.log(questionTxt);
-
     return { 'txt': questionTxt, 'length': data.length }
 }
 async function getVacant(id) {

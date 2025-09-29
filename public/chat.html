@@ -11,10 +11,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="/assets/sweetalert2/sweetalert2.min.css">
 <style>
-    #loading.oculto{
+    #loading.oculto {
         display: none !important;
     }
 </style>
+
 <body>
     <div class="container" style="position: fixed;">
         <div class="row">
@@ -69,7 +70,8 @@
     </div>
 
 
-    <div id="loading" class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100 oculto" >
+    <div id="loading"
+        class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100 oculto">
         <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;">
             <span class="visually-hidden">Cargando...</span>
         </div>
@@ -94,44 +96,21 @@
     import { recognizer, synthesizer } from '/js/azureTTS.js'
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
-    let statusMic = 1;
 
-   async function init() {
+    recognizer.properties.setProperty(
+        SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs,
+        "10000" // 10 segundos de silencio antes de cerrar la frase
+    );
+    let playInterview = 0;
+
+    async function init() {
         $("#loading").removeClass("oculto");
         await toggleCamera();
         await animate();
-         $("#loading").addClass("oculto");
- 
+        $("#loading").addClass("oculto");
+
     }
     window.addEventListener('DOMContentLoaded', init);
-
-    function detectPlatform() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-        if (/android/i.test(ua)) {
-            return "Android";
-        }
-
-        // iOS detection
-        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-            return "iOS";
-        }
-
-        if (/Win/.test(navigator.platform)) {
-            return "Windows";
-        }
-
-        if (/Mac/.test(navigator.platform)) {
-            return "Mac";
-        }
-
-        if (/Linux/.test(navigator.platform)) {
-            return "Linux";
-        }
-
-        return "Desconocido";
-    }
-
 
     const transcriptionDiv = document.getElementById('transcription');
     const recordBtn = document.getElementById('recordBtn');
@@ -139,104 +118,62 @@
 
     let fullTranscription = "";
 
-    let platform = detectPlatform()
-    console.log('platform => ', platform);
-
-    if (platform == 'Android' || platform == 'iOS') {
-
-        recordBtn.addEventListener('touchstart', () => {
-            console.log("grabando audiuo");
-            if (statusMic == 1) {
-                $('#play').hide();
-                $('#micOn').show();
-                toggleRecording();
-            } else {
-                transcriptionDiv.textContent = "🎤 Grabando...";
-                recognizer.startContinuousRecognitionAsync();
-            }
-
-        });
-
-        recordBtn.addEventListener('touchend', async () => {
-            $('#recordBtn').prop('disabled', true)
-            $('#micOff').show();
-            $('#micOn').hide();
-            console.log("audiuo");
-            if (statusMic == 3) {
-                recognizer.stopContinuousRecognitionAsync();
-                transcriptionDiv.textContent = "procesando...";
-                setTimeout(async function () {
-                    transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
-                    console.log('enviando a Open ia: ', fullTranscription);
-                    let bot = await generateChatResponse(fullTranscription);
-                    let chat = await getchatHistory();
-                    console.log('chat : ', chat);
-
-                    questionBot.textContent = "Bot: " + bot;
-                    speakAvatar(bot)
-                    fullTranscription = "";
-                }, 3000);
-            } else {
-                saludo();
-            }
-
-        });
-
-    } else {
-
-        recordBtn.addEventListener('mousedown', () => {
-            console.log(statusMic);
-            if (statusMic == 1) {
-                $('#play').hide();
-                $('#micOff').show();
-                toggleRecording();
-            } else {
-                transcriptionDiv.textContent = "🎤 Grabando...";
-                recognizer.startContinuousRecognitionAsync();
-            }
-
-        });
-
-        recordBtn.addEventListener('mouseup', async () => {
-            $('#recordBtn').prop('disabled', true)
-            $('#micOff').show();
-            $('#micOn').hide();
-            console.log("audiuo", statusMic);
-            if (statusMic == 3) {
-                recognizer.stopContinuousRecognitionAsync();
-                transcriptionDiv.textContent = "procesando...";
-                setTimeout(async function () {
-                    transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
-                    console.log('enviando a Open ia: ', fullTranscription);
-                    let bot = await generateChatResponse(fullTranscription);
-                    let chat = await getchatHistory();
-                    console.log('chat : ', chat);
-
-                    questionBot.textContent = "Bot: " + bot;
-                    speakAvatar(bot)
-                    fullTranscription = "";
-                }, 3000);
-            } else {
-                saludo();
-            }
-
-        });
-    }
-
-
+    recordBtn.addEventListener('click', async () => {
+        $('#recordBtn').prop('disabled', true)
+        $('#micOff').show();
+        $('#micOn').hide();
+        if (playInterview == 0) {
+            playInterview = 1;
+            toggleRecording();
+            saludo();
+        }
+    });
 
     // Evento cuando se reconoce texto
+    let silenceTimer = null;
     recognizer.recognized = async (s, e) => {
         if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
             fullTranscription += " " + e.result.text;
             console.log('Transcription: ', fullTranscription);
+
+            if (silenceTimer) {
+                clearTimeout(silenceTimer);
+            }
+
+            silenceTimer = setTimeout(async () => {
+                if (fullTranscription.trim().length > 0) {
+                    recognizer.stopContinuousRecognitionAsync();
+                }
+            }, 5000);
+
         } else {
             transcriptionDiv.textContent = "No se reconoció audio correctamente.";
         }
     };
 
 
+
+    recognizer.sessionStopped = async () => {
+        console.log("no habla el usuario");
+        if (fullTranscription.trim().length > 0) {
+            $('#micOff').show();
+            $('#micOn').hide();
+
+            transcriptionDiv.textContent = "💭 procesando...";
+            transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+            console.log('enviando a Open ia: ', fullTranscription);
+            let bot = await generateChatResponse(fullTranscription);
+            let chat = await getchatHistory();
+            console.log('chat : ', chat);
+            questionBot.textContent = "Bot: " + bot;
+            speakAvatar(bot)
+            fullTranscription = "";
+        }
+
+    };
+
     async function speakAvatar(texto) {
+        $('#recordBtn').prop('disabled', true)
         if (!texto) return;
 
         const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
@@ -323,6 +260,7 @@
                         $('#micOff').hide();
                         $('#recordBtn').prop('disabled', false)
                         audioCtx.close(); // liberar recursos
+                        recognizer.startContinuousRecognitionAsync();
                     };
 
                 } catch (err) {
@@ -336,7 +274,7 @@
     }
 
     async function saludo() {
-        statusMic = 3;
+        $('#play').hide();
         let bot = await generateChatResponse("");
         speakAvatar(bot)
         questionBot.textContent = "Bot: " + bot;
@@ -344,11 +282,30 @@
     }
 
     $('#btnexit').on('click', async function () {
-        let username = $('#username').val();
-        let chat = await getchatHistory();
-        chat.shift()
-        await setChatHistory(chat)
-        toggleRecording();
+
+        if (playInterview == 0) {
+            Swal.fire({
+                title: '¿Seguro que quieres salir de la entrevista?',
+                text: `Aun no has iniciado la entrevista, el reclutador no podrá decidir si eres el candidato adecuado para la vacante de ${localStorage.getItem('vacant')}`,
+                icon: 'question',
+                confirmButtonText: 'Salir de la entrevista',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#63B31B',
+                showCancelButton: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.clear();
+                    window.location.href = `https://yobo.app/`;
+                }
+            });
+        } else {
+            let username = $('#username').val();
+            let chat = await getchatHistory();
+            chat.shift()
+            await setChatHistory(chat)
+            toggleRecording();
+        }
+
     });
 
 </script>

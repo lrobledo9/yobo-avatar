@@ -2,7 +2,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const username =  localStorage.getItem('username');
 const vacantName = localStorage.getItem('vacant');
 const interviewId = localStorage.getItem('interviewid');
-console.log(interviewId, username, vacantName);
 
 $('#micOn').hide();
 $('#micOff').hide();
@@ -89,7 +88,7 @@ async function toggleRecording() {
                 localStorage.clear();
                 Swal.hideLoading();
 
-                window.location.href = `/`;
+                window.location.href = `https://yobo.app/`;
             }, (err) => {
                 console.log(err);
             });

@@ -34,7 +34,8 @@ let headBone = null;
 let baseHeadQuat = null;
 let spineBone = null;
 //https://models.readyplayer.me/68a89d1c19e322fda4dd47c5.glb
-loader.load("https://models.readyplayer.me/68b73bdb0727401620ad282a.glb", gltf => {
+//https://models.readyplayer.me/68b73bdb0727401620ad282a.glb
+loader.load("https://models.readyplayer.me/68daf025b56587edda9cb3ce.glb", gltf => {
     avatarMesh = gltf.scene;
     avatarMesh.scale.set(3, 3, 3);
     avatarMesh.position.y = -3.8;

@@ -60,7 +60,7 @@
         const dataVacant = await getVacant(application);
         let username = $('#username').val();
         if (dataVacant == null) {
-             Swal.fire({
+            Swal.fire({
                 title: 'Error al obtener el detalle para la entrevista!',
                 text: 'Inténtalo más tarde.',
                 icon: 'error',
@@ -75,9 +75,6 @@
             window.location.href = `/chat`;
         }
 
-       
-
-       
     });
 
 </script>
