@@ -68,9 +68,10 @@ async function toggleRecording() {
 
             Swal.fire({
                 icon: "info",
-                title: "Guardando los datos de la entrevista",
+                title: "📤 Subiendo tu video, por favor espera...",
                 showConfirmButton: false,
                 timerProgressBar: true,
+                text:'⏳ Procesando tu entrevista, esto puede tardar unos segundos.',
                 didOpen: () => {
                     Swal.showLoading();
                 }
@@ -86,11 +87,18 @@ async function toggleRecording() {
                         
                 await sendDataInterview(interviewId,data.data.url, chatHistory)
                 localStorage.clear();
-                Swal.hideLoading();
+                Swal.close();
 
                 window.location.href = `https://yobo.app/`;
             }, (err) => {
                 console.log(err);
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Error al subir el video',
+                    text: 'Intenta nuevamente más tarde.',
+                    confirmButtonColor: '#63B31B',
+                });
             });
 
             recordedChunks = []; // reset

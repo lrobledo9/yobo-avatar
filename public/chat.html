@@ -83,6 +83,15 @@
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/js/n8nService.js"></script>
 <script src="/js/cameraChat.js"></script>
+<script>
+    const validApplication = localStorage.getItem('application');
+    const validUsername =  localStorage.getItem('username');
+    const validVacant =  localStorage.getItem('vacant');
+    if (validApplication == null && validUsername == null && validVacant == null) {
+        window.location.href = `/`;
+    }
+    
+</script>
 
 <script type="importmap">
     {
@@ -299,6 +308,11 @@
                 }
             });
         } else {
+            $('#recordBtn').prop('disabled', true);
+            $('#micOff').show();
+            $('#micOn').hide();
+            recognizer.stopContinuousRecognitionAsync();
+
             let username = $('#username').val();
             let chat = await getchatHistory();
             chat.shift()
