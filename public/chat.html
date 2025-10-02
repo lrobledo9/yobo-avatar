@@ -38,12 +38,15 @@
         <div class="container text-center">
             <div class="row align-items-center">
                 <div class="col text-start">
-
-                    <body>
-
-                        <div id="recordingIndicator" style="display:none;">
-                            🔴
+                    <div class="row">
+                        <div class="col-auto d-flex justify-content-center align-items-center" style="padding: 0;">
+                            <span id="recordingIndicator" style="display:none;">🔴</span>
                         </div>
+                        <div class="col-auto">
+                            <span id="counter" class="fw-bold text-light fs-4">00:00:00</span>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="col-auto ">
@@ -56,7 +59,11 @@
                     </button>
                 </div>
                 <div class="col text-end">
-                    <button id="btnexit" class="btn btn-danger"><svg xmlns="http://www.w3.org/2000/svg" height="40px"
+                    <button id="btnexit" class="btn btn-danger"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Salir de la entrevista">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="40px"
                             viewBox="0 -960 960 960" width="40px" fill="#EA3323">
                             <path
                                 d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67V-380h66.67v193.33h586.66v-586.66H186.67V-580H120v-193.33q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm228.66-164.67L366.67-334l112.66-112.67H120v-66.66h359.33L366.67-626l48.66-49.33L610.67-480 415.33-284.67Z" />
@@ -85,12 +92,11 @@
 <script src="/js/cameraChat.js"></script>
 <script>
     const validApplication = localStorage.getItem('application');
-    const validUsername =  localStorage.getItem('username');
-    const validVacant =  localStorage.getItem('vacant');
+    const validUsername = localStorage.getItem('username');
+    const validVacant = localStorage.getItem('vacant');
     if (validApplication == null && validUsername == null && validVacant == null) {
         window.location.href = `/`;
     }
-    
 </script>
 
 <script type="importmap">
@@ -117,7 +123,6 @@
         await toggleCamera();
         await animate();
         $("#loading").addClass("oculto");
-
     }
     window.addEventListener('DOMContentLoaded', init);
 
@@ -134,6 +139,7 @@
         if (playInterview == 0) {
             playInterview = 1;
             toggleRecording();
+            startCounter();
             saludo();
         }
     });
@@ -159,8 +165,6 @@
             transcriptionDiv.textContent = "No se reconoció audio correctamente.";
         }
     };
-
-
 
     recognizer.sessionStopped = async () => {
         console.log("no habla el usuario");
@@ -290,8 +294,32 @@
 
     }
 
-    $('#btnexit').on('click', async function () {
+    // timer
+    let totalSeconds = 0;
+    let timerInterval;
+    const counterEl = document.getElementById("counter");
+    function formatTime(sec) {
+        const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
 
+    function startCounter() {
+        totalSeconds = 0;
+        counterEl.textContent = "00:00:00";
+        timerInterval = setInterval(() => {
+            totalSeconds++;
+            counterEl.textContent = formatTime(totalSeconds);
+        }, 1000);
+    }
+
+    function stopCounter() {
+        clearInterval(timerInterval);
+    }
+
+    $('#btnexit').on('click', async function () {
+        
         if (playInterview == 0) {
             Swal.fire({
                 title: '¿Seguro que quieres salir de la entrevista?',
@@ -300,6 +328,8 @@
                 confirmButtonText: 'Salir de la entrevista',
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#63B31B',
+                allowOutsideClick: false,
+                allowEscapeKey: false,   
                 showCancelButton: true,
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -311,6 +341,7 @@
             $('#recordBtn').prop('disabled', true);
             $('#micOff').show();
             $('#micOn').hide();
+            stopCounter();
             recognizer.stopContinuousRecognitionAsync();
 
             let username = $('#username').val();

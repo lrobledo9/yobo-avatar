@@ -72,6 +72,8 @@ async function toggleRecording() {
                 showConfirmButton: false,
                 timerProgressBar: true,
                 text:'⏳ Procesando tu entrevista, esto puede tardar unos segundos.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
                 didOpen: () => {
                     Swal.showLoading();
                 }
