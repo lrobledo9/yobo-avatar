@@ -8,7 +8,11 @@
 </head>
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="/assets/sweetalert2/sweetalert2.min.css">
-
+<style>
+    #loading.oculto {
+        display: none !important;
+    }
+</style>
 <body class="bg-light">
 
     <div class="d-flex justify-content-center align-items-center vh-100">
@@ -39,7 +43,8 @@
         </div>
     </div>
 
-    <div id="loading" class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100" style="display:none !important; ">
+    <div id="loading"
+        class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100 oculto">
         <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;">
             <span class="visually-hidden">Cargando...</span>
         </div>
@@ -55,10 +60,22 @@
     const urlParams = new URLSearchParams(window.location.search);
    
     $('#btn-init-chat').on('click', async function () {
-        $('#loading').show();
+        $("#loading").removeClass("oculto");
+        let username = $('#username').val();        
+        if (username == '') {
+            $("#loading").addClass("oculto");
+            Swal.fire({
+                title: '⚠️ Nombre requerido',
+                text: '🖋 Por favor ingresa tu nombre antes de continuar.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#63B31B',
+            });
+            return;
+        }
+
         const application = urlParams.get('application'); // "123"
         const dataVacant = await getVacant(application);
-        let username = $('#username').val();
         if (dataVacant == null) {
             Swal.fire({
                 title: 'Error al obtener el detalle para la entrevista!',
@@ -67,7 +84,7 @@
                 confirmButtonText: 'OK'
             });
         }else{
-            $('#loading').hide();
+            $("#loading").removeClass("oculto");
             localStorage.setItem("application", application);
             localStorage.setItem("vacant", dataVacant.vacant);
             localStorage.setItem("interviewid", dataVacant.interviewid);
