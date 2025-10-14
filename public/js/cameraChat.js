@@ -91,7 +91,20 @@ async function toggleRecording() {
                 localStorage.clear();
                 Swal.close();
 
-                window.location.href = `https://yobo.app/`;
+                Swal.fire({
+                    title: 'Guardado con éxito',
+                    text: `Los datos de la entrevista  se han guardado correctamente.`,
+                    icon: 'info',
+                    confirmButtonText: 'ok',
+                    confirmButtonColor: '#63B31B',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,   
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.clear();
+                        window.location.href = `https://yobo.app/`;
+                    }
+                });
             }, (err) => {
                 console.log(err);
                 Swal.close();

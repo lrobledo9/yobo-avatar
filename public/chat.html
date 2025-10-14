@@ -59,12 +59,10 @@
                     </button>
                 </div>
                 <div class="col text-end">
-                    <button id="btnexit" class="btn btn-danger"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
+                    <button id="btnexit" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Salir de la entrevista">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="40px"
-                            viewBox="0 -960 960 960" width="40px" fill="#EA3323">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px"
+                            fill="#FFFFFF">
                             <path
                                 d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67V-380h66.67v193.33h586.66v-586.66H186.67V-580H120v-193.33q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm228.66-164.67L366.67-334l112.66-112.67H120v-66.66h359.33L366.67-626l48.66-49.33L610.67-480 415.33-284.67Z" />
                         </svg>
@@ -111,6 +109,7 @@
     import { recognizer, synthesizer } from '/js/azureTTS.js'
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+    let statusMic = 1;
 
     recognizer.properties.setProperty(
         SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs,
@@ -126,71 +125,106 @@
     }
     window.addEventListener('DOMContentLoaded', init);
 
+    function detectPlatform() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+        if (/android/i.test(ua)) {
+            return "Android";
+        }
+
+        // iOS detection
+        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+            return "iOS";
+        }
+
+        if (/Win/.test(navigator.platform)) {
+            return "Windows";
+        }
+
+        if (/Mac/.test(navigator.platform)) {
+            return "Mac";
+        }
+
+        if (/Linux/.test(navigator.platform)) {
+            return "Linux";
+        }
+
+        return "Desconocido";
+    }
+
+
     const transcriptionDiv = document.getElementById('transcription');
     const recordBtn = document.getElementById('recordBtn');
     const questionBot = document.getElementById('question');
 
     let fullTranscription = "";
 
-    recordBtn.addEventListener('click', async () => {
+
+    let platform = detectPlatform()
+    console.log('platform => ', platform);
+
+    let btnEvent = {
+        init: (platform == 'Android' || platform == 'iOS') ? 'touchstart' : 'mousedown',
+        end: (platform == 'Android' || platform == 'iOS') ? 'touchend' : 'mouseup'
+    }
+    console.log("eventos:", btnEvent);
+
+
+    recordBtn.addEventListener(btnEvent.init, () => {
+        console.log("grabando audiuo");
+        if (statusMic == 1) {
+            $('#play').hide();
+            $('#micOn').show();
+            toggleRecording();
+            startCounter();
+            playInterview = 1;
+        } else {
+            transcriptionDiv.textContent = "🎤 Grabando...";
+            recognizer.startContinuousRecognitionAsync();
+        }
+
+    });
+
+    recordBtn.addEventListener(btnEvent.end, async () => {
         $('#recordBtn').prop('disabled', true)
         $('#micOff').show();
         $('#micOn').hide();
-        if (playInterview == 0) {
-            playInterview = 1;
-            toggleRecording();
-            startCounter();
+        console.log("audiuo");
+        if (statusMic == 3) {
+            recognizer.stopContinuousRecognitionAsync();
+            transcriptionDiv.textContent = "💭 Pensando...";
+            setTimeout(async function () {
+                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                console.log('enviando a Open ia: ', fullTranscription);
+                let bot = await generateChatResponse(fullTranscription);
+                let chat = await getchatHistory();
+                console.log('chat : ', chat);
+
+                questionBot.textContent = "Bot: " + bot;
+                speakAvatar(bot)
+                fullTranscription = "";
+            }, 3000);
+        } else {
             saludo();
         }
+
     });
 
     // Evento cuando se reconoce texto
-    let silenceTimer = null;
     recognizer.recognized = async (s, e) => {
         if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
             fullTranscription += " " + e.result.text;
             console.log('Transcription: ', fullTranscription);
-
-            if (silenceTimer) {
-                clearTimeout(silenceTimer);
-            }
-
-            silenceTimer = setTimeout(async () => {
-                if (fullTranscription.trim().length > 0) {
-                    recognizer.stopContinuousRecognitionAsync();
-                }
-            }, 5000);
-
         } else {
             transcriptionDiv.textContent = "No se reconoció audio correctamente.";
         }
     };
 
-    recognizer.sessionStopped = async () => {
-        console.log("no habla el usuario");
-        if (fullTranscription.trim().length > 0) {
-            $('#micOff').show();
-            $('#micOn').hide();
-
-            transcriptionDiv.textContent = "💭 procesando...";
-            transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
-            console.log('enviando a Open ia: ', fullTranscription);
-            let bot = await generateChatResponse(fullTranscription);
-            let chat = await getchatHistory();
-            console.log('chat : ', chat);
-            questionBot.textContent = "Bot: " + bot;
-            speakAvatar(bot)
-            fullTranscription = "";
-        }
-
-    };
-
     async function speakAvatar(texto) {
-        $('#recordBtn').prop('disabled', true)
+
         if (!texto) return;
 
         const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
-
 
         let ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-ES">`;
         ssml += `<voice name="es-MX-JorgeNeural">`;
@@ -273,7 +307,6 @@
                         $('#micOff').hide();
                         $('#recordBtn').prop('disabled', false)
                         audioCtx.close(); // liberar recursos
-                        recognizer.startContinuousRecognitionAsync();
                     };
 
                 } catch (err) {
@@ -286,8 +319,9 @@
         );
     }
 
+
     async function saludo() {
-        $('#play').hide();
+        statusMic = 3;
         let bot = await generateChatResponse("");
         speakAvatar(bot)
         questionBot.textContent = "Bot: " + bot;
@@ -319,7 +353,7 @@
     }
 
     $('#btnexit').on('click', async function () {
-        
+
         if (playInterview == 0) {
             Swal.fire({
                 title: '¿Seguro que quieres salir de la entrevista?',
@@ -329,7 +363,7 @@
                 cancelButtonText: 'Cancelar',
                 confirmButtonColor: '#63B31B',
                 allowOutsideClick: false,
-                allowEscapeKey: false,   
+                allowEscapeKey: false,
                 showCancelButton: true,
             }).then((result) => {
                 if (result.isConfirmed) {
