@@ -25,12 +25,12 @@
 
                 </div>
             </div>
-            <div class="col-lg-6">
+            <!--<div class="col-lg-6">
                 <div id="textBotContent">
                     <p id="transcription">Transcripción: </p><br>
                     <p id="question">Bot:</p>
                 </div>
-            </div>
+            </div>-->
         </div>
     </div>
 
@@ -59,6 +59,18 @@
                     </button>
                 </div>
                 <div class="col text-end">
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"
+                        aria-label="Toggle navigation">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px"
+                            fill="#FFFFFF">
+                            <path
+                                d="M240-399.33h315.33V-466H240v66.67ZM240-526h480v-66.67H240V-526Zm0-126.67h480v-66.66H240v66.66ZM80-80v-733.33q0-27 19.83-46.84Q119.67-880 146.67-880h666.66q27 0 46.84 19.83Q880-840.33 880-813.33v506.66q0 27-19.83 46.84Q840.33-240 813.33-240H240L80-80Zm131.33-226.67h602v-506.66H146.67v575l64.66-68.34Zm-64.66 0v-506.66 506.66Z" />
+                        </svg>
+                    </button>
+
+
                     <button id="btnexit" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Salir de la entrevista">
                         <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px"
@@ -75,6 +87,20 @@
     </div>
 
 
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Transcripción</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body d-flex flex-column" style="height: 100%;">
+            <!-- Zona del chat -->
+            <div id="chatBox" class="flex-grow-1 overflow-auto p-2 border rounded bg-light"></div>
+        </div>
+    </div>
+
+
     <div id="loading"
         class="d-flex justify-content-center align-items-center bg-dark bg-opacity-50 position-fixed top-0 start-0 w-100 h-100 oculto">
         <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem;">
@@ -84,6 +110,7 @@
 
 </body>
 <script src="/assets/sweetalert2/sweetalert2.all.min.js"></script>
+<script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/js/n8nService.js"></script>
@@ -110,6 +137,10 @@
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
     let statusMic = 1;
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+    $('#recordBtn').prop('disabled', true);
 
     recognizer.properties.setProperty(
         SpeechSDK.PropertyId.SpeechServiceConnection_EndSilenceTimeoutMs,
@@ -122,6 +153,10 @@
         await toggleCamera();
         await animate();
         $("#loading").addClass("oculto");
+
+        setTimeout(async function () {
+            speakAvatar(`¡Hola! Qué gusto saludarte!!. Para comenzar tu entrevista, toca el botón de play.Cuando respondas, mantén presionado el botón mientras hablas y suéltalo al terminar, ¿de acuerdo? Yo me encargo del resto.`)
+        }, 3000);
     }
     window.addEventListener('DOMContentLoaded', init);
 
@@ -153,9 +188,9 @@
     }
 
 
-    const transcriptionDiv = document.getElementById('transcription');
+    //const transcriptionDiv = document.getElementById('transcription');
     const recordBtn = document.getElementById('recordBtn');
-    const questionBot = document.getElementById('question');
+    //const questionBot = document.getElementById('question');
 
     let fullTranscription = "";
 
@@ -179,7 +214,7 @@
             startCounter();
             playInterview = 1;
         } else {
-            transcriptionDiv.textContent = "🎤 Grabando...";
+            //transcriptionDiv.textContent = "🎤 Grabando...";
             recognizer.startContinuousRecognitionAsync();
         }
 
@@ -192,15 +227,17 @@
         console.log("audiuo");
         if (statusMic == 3) {
             recognizer.stopContinuousRecognitionAsync();
-            transcriptionDiv.textContent = "💭 Pensando...";
+            //transcriptionDiv.textContent = "💭 Pensando...";
             setTimeout(async function () {
-                transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
+                //transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
                 console.log('enviando a Open ia: ', fullTranscription);
+                chatUser(fullTranscription);
                 let bot = await generateChatResponse(fullTranscription);
+                chatBot(bot);
                 let chat = await getchatHistory();
                 console.log('chat : ', chat);
 
-                questionBot.textContent = "Bot: " + bot;
+                //questionBot.textContent = "Bot: " + bot;
                 speakAvatar(bot)
                 fullTranscription = "";
             }, 3000);
@@ -216,7 +253,7 @@
             fullTranscription += " " + e.result.text;
             console.log('Transcription: ', fullTranscription);
         } else {
-            transcriptionDiv.textContent = "No se reconoció audio correctamente.";
+            //transcriptionDiv.textContent = "No se reconoció audio correctamente.";
         }
     };
 
@@ -303,9 +340,11 @@
                     source.onended = () => {
                         currentMorphSil();
                         resetMouthSmoothFast();
-                        $('#micOn').show();
-                        $('#micOff').hide();
-                        $('#recordBtn').prop('disabled', false)
+                        if (playInterview != 0) {
+                            $('#micOn').show();
+                            $('#micOff').hide();
+                        }
+                        $('#recordBtn').prop('disabled', false);
                         audioCtx.close(); // liberar recursos
                     };
 
@@ -319,12 +358,12 @@
         );
     }
 
-
     async function saludo() {
         statusMic = 3;
         let bot = await generateChatResponse("");
+        chatBot(bot);
         speakAvatar(bot)
-        questionBot.textContent = "Bot: " + bot;
+        //questionBot.textContent = "Bot: " + bot;
 
     }
 
@@ -350,6 +389,26 @@
 
     function stopCounter() {
         clearInterval(timerInterval);
+    }
+
+    function chatUser(txt) {
+        const userMsg = document.createElement("div");
+        userMsg.className = "d-flex justify-content-end mb-2";
+        userMsg.innerHTML = `<div class="p-2 rounded-3 bg-success text-white" style="max-width: 80%;">
+                          <strong>Yo:</strong> ${txt}
+                         </div>`;
+        chatBox.appendChild(userMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function chatBot(txt) {
+        const botMsg = document.createElement("div");
+        botMsg.className = "d-flex justify-content-start mb-2";
+        botMsg.innerHTML = `<div class="p-2 rounded-3 bg-secondary text-white" style="max-width: 80%;">
+                            <strong>YOBO:</strong> ${txt}
+                          </div>`;
+        chatBox.appendChild(botMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     $('#btnexit').on('click', async function () {
