@@ -34,6 +34,10 @@
         </div>
     </div>
 
+    <div id="thinkingIcon" class="thinking-hidden">
+        <span></span><span></span><span></span>
+    </div>
+
     <div id="controls">
         <div class="container text-center">
             <div class="row align-items-center">
@@ -129,7 +133,7 @@
 <script type="module">
     import { recognizer, synthesizer } from '/js/azureTTS.js'
     import { generateChatResponse, getchatHistory } from '/js/openIA.js'
-    import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+    import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion, stopThinking, startThinking } from '/js/avatar.js';
     let statusMic = 1;
     const form = document.getElementById("chatForm");
     const input = document.getElementById("userInput");
@@ -226,6 +230,7 @@
             recordBtn.style.boxShadow = "0 12px 25px rgba(0,123,255,0.5)";
             recognizer.stopContinuousRecognitionAsync();
             //transcriptionDiv.textContent = "💭 Pensando...";
+            showThinkingIcon();
             setTimeout(async function () {
                 //transcriptionDiv.textContent = "Transcripción: " + fullTranscription;
                 console.log('enviando a Open ia: ', fullTranscription);
@@ -303,6 +308,7 @@
                     source.buffer = decodedData;
                     source.connect(audioCtx.destination);
                     source.start();
+                    hideThinkingIcon();
 
                     // Animar visemas
                     let i = 0;
@@ -407,6 +413,18 @@
                           </div>`;
         chatBox.appendChild(botMsg);
         chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function showThinkingIcon() {
+        const icon = document.getElementById("thinkingIcon");
+        icon.classList.remove("thinking-hidden");
+        icon.classList.add("thinking-visible");
+    }
+
+    function hideThinkingIcon() {
+        const icon = document.getElementById("thinkingIcon");
+        icon.classList.remove("thinking-visible");
+        icon.classList.add("thinking-hidden");
     }
 
     $('#btnexit').on('click', async function () {
