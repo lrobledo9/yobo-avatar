@@ -37,16 +37,9 @@
     <div id="controls">
         <div class="container text-center">
             <div class="row align-items-center">
-                <div class="col text-start">
-                    <div class="row">
-                        <div class="col-auto d-flex justify-content-center align-items-center" style="padding: 0;">
-                            <span id="recordingIndicator" style="display:none;">🔴</span>
-                        </div>
-                        <div class="col-auto">
-                            <span id="counter" class="fw-bold text-light fs-4">00:00:00</span>
-                        </div>
-                    </div>
-
+                <div class="col text-start d-flex align-items-center justify-content-start gap-2">
+                    <span id="recordingIndicator" style="display:none;">🔴</span>
+                    <span id="counter" class="fw-bold">00:00:00</span>
                 </div>
 
                 <div class="col-auto ">
@@ -57,26 +50,27 @@
                         <i id="micOn" class="bi bi-mic-fill fs-1" style="display:none;"></i>
                         <i id="micOff" class="bi bi-mic-mute-fill fs-1" style="display:none;"></i>
                     </button>
+
+
                 </div>
                 <div class="col text-end">
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
-                        data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"
+                    <button class="navbar-toggler me-2" type="button" data-bs-placement="top" title="chat"
+                        data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"
                         aria-label="Toggle navigation">
                         <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px"
                             fill="#FFFFFF">
                             <path
-                                d="M240-399.33h315.33V-466H240v66.67ZM240-526h480v-66.67H240V-526Zm0-126.67h480v-66.66H240v66.66ZM80-80v-733.33q0-27 19.83-46.84Q119.67-880 146.67-880h666.66q27 0 46.84 19.83Q880-840.33 880-813.33v506.66q0 27-19.83 46.84Q840.33-240 813.33-240H240L80-80Zm131.33-226.67h602v-506.66H146.67v575l64.66-68.34Zm-64.66 0v-506.66 506.66Z" />
+                                d="M240-399.33h315.33V-466H240v66.67ZM240-526h480v-66.67H240V-526Zm0-126.67h480v-66.66H240v66.66ZM80-80v-733.33q0-27 19.83-46.84Q119.67-880 146.67-880h666.66q27 0 46.84 19.83Q880-840.33 880-813.33v506.66q0 27-19.83 46.84Q840.33-240 813.33-240H240L80-80Z" />
                         </svg>
                     </button>
 
 
                     <button id="btnexit" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
                         title="Salir de la entrevista">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px"
-                            fill="#FFFFFF">
+                        <svg height="40px" viewBox="0 -960 960 960" width="40px" fill="#FFFFFF">
                             <path
-                                d="M186.67-120q-27 0-46.84-19.83Q120-159.67 120-186.67V-380h66.67v193.33h586.66v-586.66H186.67V-580H120v-193.33q0-27 19.83-46.84Q159.67-840 186.67-840h586.66q27 0 46.84 19.83Q840-800.33 840-773.33v586.66q0 27-19.83 46.84Q800.33-120 773.33-120H186.67Zm228.66-164.67L366.67-334l112.66-112.67H120v-66.66h359.33L366.67-626l48.66-49.33L610.67-480 415.33-284.67Z" />
+                                d="M136-305.33 42.67-398q-10-10-9.67-23.33.33-13.34 9.67-24 84-95.67 199-145.17Q356.67-640 480-640q123.33 0 238.17 49.5Q833-541 917.33-445.33q9.34 10.66 9.67 24 .33 13.33-9.67 23.33L824-305.33q-9 9-23.83 10-14.84 1-24.84-6.67l-114.66-86q-6.67-5-10-11.67-3.34-6.66-3.34-15v-130.66q-40.66-14.67-83-21.34-42.33-6.66-84.33-6.66t-84.33 6.66q-42.34 6.67-83 21.34v130.66q0 8.34-3.34 15-3.33 6.67-10 11.67l-114.79 86.19q-11.87 8.81-25.17 7.86-13.29-.95-23.37-11.38ZM242.67-518q-35 17.67-67.34 41.83Q143-452 112-424l51.33 52.67 79.34-59.34V-518ZM714-520v85.33L796-372l52-51.33q-31-30.67-64.33-54Q750.33-500.67 714-520Zm-471.33 2ZM714-520Z" />
                         </svg>
                     </button>
                 </div>
@@ -88,15 +82,15 @@
 
 
 
+    <!-- CHAT -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Transcripción</h5>
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">💬 Transcripción</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
 
         <div class="offcanvas-body d-flex flex-column" style="height: 100%;">
-            <!-- Zona del chat -->
-            <div id="chatBox" class="flex-grow-1 overflow-auto p-2 border rounded bg-light"></div>
+            <div id="chatBox" class="flex-grow-1 overflow-auto p-3 d-flex flex-column"></div>
         </div>
     </div>
 
@@ -214,6 +208,8 @@
             startCounter();
             playInterview = 1;
         } else {
+            recordBtn.style.background = "linear-gradient(145deg, #ff4d4d, #b30000)";
+            recordBtn.style.boxShadow = "0 0 25px rgba(255,0,0,0.6)";
             //transcriptionDiv.textContent = "🎤 Grabando...";
             recognizer.startContinuousRecognitionAsync();
         }
@@ -226,6 +222,8 @@
         $('#micOn').hide();
         console.log("audiuo");
         if (statusMic == 3) {
+            recordBtn.style.background = "linear-gradient(145deg, #007bff, #0056b3)";
+            recordBtn.style.boxShadow = "0 12px 25px rgba(0,123,255,0.5)";
             recognizer.stopContinuousRecognitionAsync();
             //transcriptionDiv.textContent = "💭 Pensando...";
             setTimeout(async function () {

@@ -82,6 +82,8 @@
                 text: 'Inténtalo más tarde.',
                 icon: 'error',
                 confirmButtonText: 'OK'
+            }).then((result) => {
+                $("#loading").addClass("oculto");
             });
         }else{
             $("#loading").removeClass("oculto");

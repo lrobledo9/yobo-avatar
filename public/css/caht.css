@@ -30,6 +30,7 @@ html {
     aspect-ratio: 4/3;
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 2px 4px 8px rgb(0 0 0 / 83%);
 }
 
 #cameraVideo {
@@ -59,8 +60,8 @@ html {
     justify-content: center;
     gap: 1%;
     padding: 1% 0.5%;
-    background-color: rgba(83, 78, 78, 0.7);
-    
+    background-color: rgba(0, 0, 0, 0.7);
+
 }
 
 #controls button,
@@ -79,6 +80,12 @@ html {
 
 
 #recordBtn {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 12px 25px rgba(0, 123, 255, 0.5);
+    background: linear-gradient(145deg, #007bff, #0056b3);
     user-select: none;
     /* Evita selección de texto */
     -webkit-user-select: none;
@@ -89,25 +96,29 @@ html {
     /* Mejora la interacción táctil */
 }
 
-#btnexit{
-    background: #007bff00 ;
-}
-#btnexit :hover{
-    background: #ff00001f ;
+
+#btnexit {
+    border-radius: 50px !important;
 }
 
-#recordingIndicator { 
-  top: 10px;
-  left: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  color: rgb(255, 255, 255);
-  animation: blink 1s infinite;
+#recordingIndicator {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff4b4b;
+    animation: blink 1s infinite;
+}
+
+#loading.oculto {
+    display: none !important;
+}
+
+#counter {
+    font-size: 1.5rem;
+    color: #ffffff;
 }
 
 @keyframes blink {
-  50% {
-    opacity: 0;
-  }
+    50% {
+        opacity: 0;
+    }
 }
-
