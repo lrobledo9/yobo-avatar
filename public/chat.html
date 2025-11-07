@@ -110,15 +110,17 @@
 <script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/login.js"></script>
 <script src="/js/n8nService.js"></script>
 <script src="/js/cameraChat.js"></script>
 <script>
     const validApplication = localStorage.getItem('application');
     const validUsername = localStorage.getItem('username');
     const validVacant = localStorage.getItem('vacant');
-    if (validApplication == null && validUsername == null && validVacant == null) {
+    if (validApplication == null || validUsername == null || validVacant == null) {
         window.location.href = `/`;
-    }
+    }    
 </script>
 
 <script type="importmap">
@@ -130,9 +132,12 @@
 </script>
 
 <script type="module">
-    import { recognizer, synthesizer } from '/js/azureTTS.js'
-    import { generateChatResponse, getchatHistory } from '/js/openIA.js'
+    import { accessKeyAzure, recognizer, synthesizer } from '/js/azureTTS.js'
+    import { generateChatResponse, getchatHistory, getQuestionsprompt } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+
+
+
     // 
     let statusMic = 1;
     //timer
@@ -144,7 +149,6 @@
     let fullTranscription = "";
 
     let platform = detectPlatform();
-
 
     let btnEvent = {
         init: (platform == 'Android' || platform == 'iOS') ? 'touchstart' : 'mousedown',
@@ -170,10 +174,12 @@
 
     async function init() {
         $("#loading").removeClass("oculto");
+        await login();
+        await accessKeyAzure();
+        await getQuestionsprompt();
         await toggleCamera();
         await animate();
         $("#loading").addClass("oculto");
-
         setTimeout(async function () {
             speakAvatar(`¡Hola! ¡Qué gusto saludarte!
 Para comenzar tu entrevista, toca el botón Play.
@@ -183,6 +189,7 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
 ¡Fácil, verdad?
 ¿Listo para comenzar?`)
         }, 3000);
+        azureEvents();
     }
     window.addEventListener('DOMContentLoaded', init);
 
@@ -248,24 +255,25 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
         recognizer.stopContinuousRecognitionAsync();
     });
 
-    // Evento cuando se reconoce texto
-    recognizer.recognized = async (s, e) => {
-        if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-            fullTranscription += " " + e.result.text;
-            console.log('Transcription: ', fullTranscription);
-        } else {
-            //transcriptionDiv.textContent = "No se reconoció audio correctamente.";
-        }
-    };
+    function azureEvents() {
+        // Evento cuando se reconoce texto
+        recognizer.recognized = async (s, e) => {
+            if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                fullTranscription += " " + e.result.text;
+                console.log('Transcription: ', fullTranscription);
+            } else {
+                //transcriptionDiv.textContent = "No se reconoció audio correctamente.";
+            }
+        };
 
-    recognizer.sessionStopped = async () => {
-        console.log("no habla el usuario");
-        statusMic = 1;
-        await stopRecording();
+        recognizer.sessionStopped = async () => {
+            console.log("no habla el usuario");
+            statusMic = 1;
+            await stopRecording();
 
-    };
+        };
 
-
+    }
     async function stopRecording() {
         $('#recordBtn').prop('disabled', true)
         $('#micOff').show();

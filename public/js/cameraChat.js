@@ -58,7 +58,7 @@ async function toggleRecording() {
             }
         };
 
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
             indicator.style.display = "none";
             const blob = new Blob(recordedChunks, { type: "video/mp4" });
             let filename = `${username}-${vacantName}-${new Date().getTime()}.mp4`
@@ -79,9 +79,12 @@ async function toggleRecording() {
                 }
             });
 
-
-            fetch("https://yobo-services-cqeyeuc8chfffta0.canadacentral-01.azurewebsites.net/api/v1/azure/blob/storage", {
+            const accessToken = await getAccessToken();
+            fetch(`${CONFIG.baseUrl}/v1/azure/blob/storage`, {
                 method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                },
                 body: formData,
             }).then(async (response) => {
                 const data = await response.json();

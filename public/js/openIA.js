@@ -1,45 +1,69 @@
 const application = localStorage.getItem('application');
-const username =  localStorage.getItem('username');
-const vacant =  localStorage.getItem('vacant');
+const username = localStorage.getItem('username');
+const vacant = localStorage.getItem('vacant');
 
 let chatHistory = [];
 
 let questionsData = null;
-const getQuestionsprompt = async () => {
+let controlador;
+
+
+export const getQuestionsprompt = async () => {
     const data = await getQuestions(application);
     questionsData = data;
 }
-getQuestionsprompt()
-let controlador;
 
 export const generateChatResponse = async (text) => {
     controlador?.abort();
+    const accessToken = await getAccessToken();
+    const msg = ['Parece que me distraje un momento. ¡Intentemos de nuevo!'
+        , '¡Parece que perdí conexión!. Intentemos otra vez en unos segundos.'
+        , 'Ups, algo salió mal al procesar eso. ¡Intentémoslo otra vez!'
+        , 'Parece que hubo un problema con la conexión. Inténtalo de nuevo'
+        , 'Hmm… no obtuve respuesta esta vez. Podemos volver a intentarlo enseguida.'
+        , 'La solicitud tardó más de lo esperado. Por favor, vuelve a intentarlo.'
+    ]
+
 
     controlador = new AbortController();
     const signal = controlador.signal;
 
-    chatHistory.push({ role: "user", content: text });
-    const response = await fetch("https://yobo-services-cqeyeuc8chfffta0.canadacentral-01.azurewebsites.net/api/v1/openia/chat/response", {
-        signal,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            "name": username,
-            "vacant":vacant,
-            "questions":questionsData,
-            "chat": chatHistory
-        })
-    });
+    try {
+        chatHistory.push({ role: "user", content: text });
+        const response = await fetch(`${CONFIG.baseUrl}/v1/openia/chat/response`, {
+            signal,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                "name": username,
+                "vacant": vacant,
+                "questions": questionsData,
+                "chat": chatHistory
+            })
+        });
 
-    const data = await response.json();
-    const reply = data.data.reply;
-    // Guardamos la respuesta del entrevistador también en el historial
-    
-    chatHistory.push({ role: "assistant", content: reply });
-    return reply;
 
+        if (!response.ok) {
+            chatHistory.pop();
+            const i = Math.floor(Math.random() * msg.length);
+            return msg[i];
+        }
+
+        const data = await response.json();
+        const reply = data.data.reply;
+        // Guardamos la respuesta del entrevistador también en el historial
+        
+        chatHistory.push({ role: "assistant", content: reply });
+        return reply;
+
+    } catch (error) {
+        chatHistory.pop();
+        const r = Math.floor(Math.random() * msg.length);
+        return msg[r];
+    }
 }
 
 export const getchatHistory = async () => {
