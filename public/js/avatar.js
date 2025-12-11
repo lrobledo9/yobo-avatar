@@ -33,8 +33,12 @@ const loader = new GLTFLoader();
 let headBone = null;
 let baseHeadQuat = null;
 let spineBone = null;
+//male
 //https://models.readyplayer.me/68a89d1c19e322fda4dd47c5.glb
 //https://models.readyplayer.me/68b73bdb0727401620ad282a.glb
+//https://models.readyplayer.me/68daf025b56587edda9cb3ce.glb
+//Female
+// https://models.readyplayer.me/6938861a347390125d7f7007.glb
 loader.load("https://models.readyplayer.me/68daf025b56587edda9cb3ce.glb", gltf => {
     avatarMesh = gltf.scene;
     avatarMesh.scale.set(3, 3, 3);
@@ -112,21 +116,54 @@ function breathe() {
 let currentMorph = null;
 let isTalking = false;
 
+const PHONEME_TO_VISEME = {
+    'a': "viseme_aa",
+    '@': 'viseme_aa',
+    'i': "viseme_I",
+    'p': "viseme_PP",
+    'b': 'viseme_PP',
+    'B': 'viseme_PP',
+    'f': "viseme_FF",
+    'T': "viseme_TH",
+    't': "viseme_DD",
+    'd': "viseme_DD",
+    'k': "viseme_kk",
+    'C': "viseme_CH",
+    'c': "viseme_CH",
+    'z': "viseme_SS",
+    'n': "viseme_nn",
+    'N': "viseme_nn",
+    'r': "viseme_RR",
+    'A': "viseme_aa",
+    'e': "viseme_E",
+    'E': "viseme_E",
+    'j': "viseme_I",
+    'J': "viseme_I",
+    'o': "viseme_O",
+    'O': "viseme_O",
+    'u': "viseme_U",
+    'S': "viseme_CH",
+    'K': "viseme_kk",
+    'R': "viseme_RR",
+    's': "viseme_SS",
+    'U': "viseme_U",
+    'sil': "viseme_sil"
+};
+
+export function phonemeToViseme(phoneme) {
+    if (!phoneme) return "viseme_sil";
+    const trimmed = phoneme.trim();
+    return PHONEME_TO_VISEME[trimmed] || PHONEME_TO_VISEME[trimmed.toLowerCase()] || "viseme_sil";
+}
+
 export function currentMorphSil() {
     currentMorph = "viseme_sil";
 }
 
 export function applyViseme(id) {
     if (!avatarMesh) return;
-    const mapping = {
-        0: "viseme_aa", 1: "viseme_I", 2: "viseme_PP", 3: "viseme_FF",
-        4: "viseme_TH", 5: "viseme_DD", 6: "viseme_kk", 7: "viseme_CH",
-        8: "viseme_SS", 9: "viseme_nn", 10: "viseme_RR", 11: "viseme_aa",
-        12: "viseme_E", 13: "viseme_I", 14: "viseme_O", 15: "viseme_U",
-        16: "viseme_CH", 17: "viseme_kk", 18: "viseme_RR", 19: "viseme_SS",
-        20: "viseme_U", 21: "viseme_sil"
-    };
-    currentMorph = mapping[id] || "viseme_sil";
+    currentMorph = id;
+    //currentMorph = phonemeToViseme(id);
     isTalking = currentMorph !== "viseme_sil";
 }
 

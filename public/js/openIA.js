@@ -30,6 +30,14 @@ export const generateChatResponse = async (text) => {
 
     try {
         chatHistory.push({ role: "user", content: text });
+
+        if (text == ' ') {
+
+            chatHistory.push({ role: "assistant", content: 'Hmm… no obtuve respuesta esta vez. Podemos volver a intentarlo enseguida.' });
+            return 'Hmm… no obtuve respuesta esta vez. Podemos volver a intentarlo enseguida.';
+        }
+
+
         const response = await fetch(`${CONFIG.baseUrl}/v1/openia/chat/response`, {
             signal,
             method: "POST",
@@ -55,7 +63,7 @@ export const generateChatResponse = async (text) => {
         const data = await response.json();
         const reply = data.data.reply;
         // Guardamos la respuesta del entrevistador también en el historial
-        
+
         chatHistory.push({ role: "assistant", content: reply });
         return reply;
 
@@ -68,4 +76,32 @@ export const generateChatResponse = async (text) => {
 
 export const getchatHistory = async () => {
     return chatHistory;
+}
+
+export const transcribeAudio = async (blob) => {
+    const accessToken = await getAccessToken();
+    const formData = new FormData();
+    formData.append('file', blob, 'audio.webm');
+    const response = await fetch(`${CONFIG.baseUrlN8n}/api/v1/openia/chat/transcriptions`, {
+        method: "POST",
+        body: formData
+    });
+
+    if (!response.ok) {
+        return ' ';
+    }
+
+    const data = await response.json();
+
+    console.log('transcripcion', data);
+    if (data.error) {
+        return ' ';
+    }
+    if (data.text === '') {
+         return ' ';
+    }
+    
+    return data.text;
+
+
 }

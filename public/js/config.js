@@ -1,4 +1,4 @@
 const CONFIG = {
-  baseUrl: 'https://yobo-services-dev-fshpa4fchwesezg4.canadacentral-01.azurewebsites.net/api',
-  baseUrlN8n: 'https://appyobo.app.n8n.cloud/webhook'
+  baseUrl: 'https://1o0l00omp8.execute-api.us-east-1.amazonaws.com/default/api',
+  baseUrlN8n: 'https://workflow.yobo.app/webhook'
 };

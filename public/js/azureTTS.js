@@ -11,7 +11,6 @@ let recognizer = null;
  */
 export const accessKeyAzure = async () => {
     const azure = await getAccessKeyAzure();
-    console.log('accessKeyAzure' ,azure);
 
     subscriptionKey = azure.subscriptionKey;
     serviceRegion = azure.serviceRegion;

@@ -64,6 +64,7 @@ async function toggleRecording() {
             let filename = `${username}-${vacantName}-${new Date().getTime()}.mp4`
             const file = new File([blob], filename, { type: "video/mp4" });
             const formData = new FormData();
+            formData.append("filename", filename);
             formData.append("file", file);
 
             Swal.fire({
@@ -80,7 +81,7 @@ async function toggleRecording() {
             });
 
             const accessToken = await getAccessToken();
-            fetch(`${CONFIG.baseUrl}/v1/azure/blob/storage`, {
+            fetch(`${CONFIG.baseUrlN8n}/api/v1/blob/storage`, {
                 method: "POST",
                 headers: {
                     'Authorization': `Bearer ${accessToken}`

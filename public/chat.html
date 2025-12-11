@@ -108,12 +108,13 @@
 </body>
 <script src="/assets/sweetalert2/sweetalert2.all.min.js"></script>
 <script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<!--<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>-->
 <script src="/assets/jquery/jquery-3.7.1.min.js"></script>
 <script src="/js/config.js"></script>
 <script src="/js/login.js"></script>
 <script src="/js/n8nService.js"></script>
 <script src="/js/cameraChat.js"></script>
+<!--<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1587.0.min.js"></script>-->
 <script>
     const validApplication = localStorage.getItem('application');
     const validUsername = localStorage.getItem('username');
@@ -132,14 +133,18 @@
 </script>
 
 <script type="module">
-    import { accessKeyAzure, recognizer, synthesizer } from '/js/azureTTS.js'
-    import { generateChatResponse, getchatHistory, getQuestionsprompt } from '/js/openIA.js'
-    import { animate, applyViseme, currentMorphSil, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+    //import { accessKeyAzure, recognizer, synthesizer } from '/js/azureTTS.js'
+    //import { initAwsSpeech, speakWithPolly } from '/js/awsSpeech.js'
+    import { ttsElevnlabs } from '/js/elevenlabs.js'
+    import { startAudioRecording, stopAudioRecording, releaseAudioStream } from '/js/audioRecorder.js'
+    import { generateChatResponse, getchatHistory, getQuestionsprompt, transcribeAudio } from '/js/openIA.js'
+    import { animate, applyViseme, currentMorphSil, phonemeToViseme, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
 
 
 
     // 
     let statusMic = 1;
+    let isAudioRecording = false;
     //timer
     let totalSeconds = 0;
     let timerInterval;
@@ -156,11 +161,6 @@
         cancel: (platform == 'Android' || platform == 'iOS') ? 'touchcancel' : 'mouseleave'
     };
 
-
-    console.log('platform => ', platform);
-    console.log("eventos:", btnEvent);
-
-
     const counterEl = document.getElementById("counter");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("userInput");
@@ -175,12 +175,16 @@
     async function init() {
         $("#loading").removeClass("oculto");
         await login();
-        await accessKeyAzure();
+        //await initAwsSpeech();
+        //await accessKeyAzure();
         await getQuestionsprompt();
         await toggleCamera();
         await animate();
+         
         $("#loading").addClass("oculto");
+        showThinkingIcon();
         setTimeout(async function () {
+           
             speakAvatar(`¡Hola! ¡Qué gusto saludarte!
 Para comenzar tu entrevista, toca el botón Play.
 Cuando yo te haga una pregunta, el micrófono se apagará automáticamente…
@@ -189,7 +193,6 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
 ¡Fácil, verdad?
 ¿Listo para comenzar?`)
         }, 3000);
-        azureEvents();
     }
     window.addEventListener('DOMContentLoaded', init);
 
@@ -230,51 +233,70 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
         playInterview = 1;
         toggleRecording();
         startCounter();
+        showThinkingIcon();
         saludo();
 
     });
 
 
-    recordBtn.addEventListener(btnEvent.init, () => {
-        console.log("grabando audiuo");
+    recordBtn.addEventListener(btnEvent.init, async () => {
+        console.log("init => grabando audio");
         recordBtn.style.background = "linear-gradient(145deg, #ff4d4d, #b30000)";
         recordBtn.style.boxShadow = "0 0 25px rgba(255,0,0,0.6)";
         statusMic = 2;
-        //transcriptionDiv.textContent = "🎤 Grabando...";
-        recognizer.startContinuousRecognitionAsync();
-
-    });
-
-    recordBtn.addEventListener(btnEvent.cancel, async () => {
-        if (statusMic === 2) {
-            recognizer.stopContinuousRecognitionAsync();
+        try {
+            await startAudioRecording();
+            isAudioRecording = true;
+        } catch (error) {
+            console.error('No se pudo iniciar la grabacion de audio', error);
+            statusMic = 1;
+            setMicIdleState();
         }
     });
 
-    recordBtn.addEventListener(btnEvent.end, async () => {
-        recognizer.stopContinuousRecognitionAsync();
+    recordBtn.addEventListener(btnEvent.cancel, async () => {
+        console.log('cancel');
+        await finalizeAudioCapture(false);
     });
 
-    function azureEvents() {
-        // Evento cuando se reconoce texto
-        recognizer.recognized = async (s, e) => {
-            if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                fullTranscription += " " + e.result.text;
-                console.log('Transcription: ', fullTranscription);
-            } else {
-                //transcriptionDiv.textContent = "No se reconoció audio correctamente.";
-            }
-        };
+    recordBtn.addEventListener(btnEvent.end, async () => {
+        console.log('end');
+        await finalizeAudioCapture(false);
+    });
 
-        recognizer.sessionStopped = async () => {
-            console.log("no habla el usuario");
-            statusMic = 1;
+    async function finalizeAudioCapture(discardAudio) {
+
+        if (!isAudioRecording) return;
+        isAudioRecording = false;
+        statusMic = 1;
+        const audioBlob = await stopAudioRecording();        
+        
+        if (discardAudio || !audioBlob || audioBlob.size === 0) {
+            console.log(audioBlob.size === 0);
+            setMicIdleState();
+            return;
+        }
+        try {
+            const transcript = await transcribeAudio(audioBlob);
+            console.log('transcript',transcript);
+            fullTranscription = transcript;
             await stopRecording();
-
-        };
-
+        } catch (error) {
+            console.error('Error transcribiendo audio', error);
+            setMicIdleState();
+        }
     }
+
+    function setMicIdleState() {
+        recordBtn.style.background = "linear-gradient(145deg, #007bff, #0056b3)";
+        recordBtn.style.boxShadow = "0 12px 25px rgba(0,123,255,0.5)";
+        $('#micOn').hide();
+        $('#micOff').show();
+        $('#recordBtn').prop('disabled', false);
+    }
+
     async function stopRecording() {
+       
         $('#recordBtn').prop('disabled', true)
         $('#micOff').show();
         $('#micOn').hide();
@@ -302,101 +324,98 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
 
         const fragments = texto.split(/[.?!,;]+/).map(f => f.trim()).filter(f => f.length > 0);
 
-        let ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-ES">`;
-        ssml += `<voice name="es-MX-JorgeNeural">`;
-        ssml += `<prosody rate="30%" pitch="-5%">`
+        /*let ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-ES">`;
+        ssml += `<prosody rate="30%" pitch="-4%">`;
         fragments.forEach((frag, index) => {
             ssml += `<p>${frag}</p>`;
-            if (index < fragments.length - 1) {
-                ssml += `<break time="1ms"/>`;
+            if (index < fragments.length - 1) ssml += `<break time="1ms"/>`;
+        });
+        ssml += `</prosody></speak>`;*/
+
+        try {
+            const { audioBuffer, alignments } = await ttsElevnlabs(texto);
+
+
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playableBuffer = audioBuffer instanceof ArrayBuffer
+                ? audioBuffer.slice(0)
+                : await new Blob([audioBuffer]).arrayBuffer();
+            const decodedData = await audioCtx.decodeAudioData(playableBuffer);
+
+            const source = audioCtx.createBufferSource();
+            source.buffer = decodedData;
+            source.connect(audioCtx.destination);
+            source.start();
+            hideThinkingIcon();
+            const visemesArray = alignmentsToVisemes(alignments);
+
+            let i = 0;
+            function tick() {
+                const currentTime = audioCtx.currentTime * 1000;
+
+                if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
+                    applyViseme(visemesArray[i].id);
+                    i++;
+                } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
+                    currentMorphSil();
+                }
+
+                let currentPhrase = 0;
+                let acumTime = 0;
+                for (let j = 0; j < fragments.length; j++) {
+                    acumTime += fragments[j].length * 50;
+                    if (currentTime < acumTime) {
+                        currentPhrase = j; break;
+                    }
+                }
+                const emotion = detectEmotion(fragments[currentPhrase]);
+                setExpression(emotion);
+
+                if (i >= visemesArray.length) {
+                    currentMorphSil();
+                }
+
+                if (i < visemesArray.length) requestAnimationFrame(tick);
             }
+
+            tick();
+
+            source.onended = () => {
+                currentMorphSil();
+                resetMouthSmoothFast();
+                if (playInterview != 0) {
+                    $('#micOn').show();
+                    $('#micOff').hide();
+                }
+                $('#recordBtn').prop('disabled', false);
+                $('#playBtn').prop('disabled', false);
+                audioCtx.close(); // liberar recursos
+            };
+
+        } catch (error) {
+            console.error('Error reproduciendo audio del avatar:', error);
+        }
+    }
+
+
+
+    function alignmentsToVisemes(alignments) {
+        const visemes = [];
+
+        alignments.forEach(block => {
+            const chars = block.characters || [];
+            const starts = block.character_start_times_seconds || [];
+            chars.forEach((char, idx) => {
+                const phoneme = char.trim() || 'sil';
+                const offsetMs = Math.round((starts[idx] ?? 0) * 1000);
+                visemes.push({
+                    id: phonemeToViseme(phoneme),
+                    offsetMs
+                });
+            });
         });
 
-        ssml += `</prosody></voice></speak>`;
-
-        const visemesArray = [];
-
-        synthesizer.visemeReceived = (s, e) => {
-            visemesArray.push({ id: e.privVisemeId, offsetMs: e.privAudioOffset / 10000 });
-        };
-
-        synthesizer.speakSsmlAsync(
-            ssml,
-            async (result) => {
-                try {
-                    // Convertir Uint8Array o Blob a ArrayBuffer
-                    let arrayBuffer;
-                    if (result.audioData instanceof Uint8Array) {
-                        arrayBuffer = result.audioData.buffer;
-                    } else {
-                        const blob = new Blob([result.audioData], { type: 'audio/mp3' });
-                        arrayBuffer = await blob.arrayBuffer();
-                    }
-
-                    // Crear AudioContext
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-                    // Decodificar
-                    const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
-
-                    // Reproducir
-                    const source = audioCtx.createBufferSource();
-                    source.buffer = decodedData;
-                    source.connect(audioCtx.destination);
-                    source.start();
-                    hideThinkingIcon();
-
-                    // Animar visemas
-                    let i = 0;
-                    function tick() {
-                        const currentTime = audioCtx.currentTime * 1000;
-                        if (i < visemesArray.length && currentTime >= visemesArray[i].offsetMs) {
-                            applyViseme(visemesArray[i].id);
-                            i++;
-                        } else if (i < visemesArray.length && currentTime < visemesArray[i].offsetMs - 200) {
-                            currentMorphSil();
-                        }
-
-                        // Determinar emoción según fragmento
-                        let currentPhrase = 0, acumTime = 0;
-                        for (let j = 0; j < fragments.length; j++) {
-                            acumTime += fragments[j].length * 50;
-                            if (currentTime < acumTime) {
-                                currentPhrase = j; break;
-                            }
-                        }
-                        const emotion = detectEmotion(fragments[currentPhrase]);
-                        setExpression(emotion);
-
-                        if (i >= visemesArray.length) {
-                            currentMorphSil();
-                        }
-
-                        if (i < visemesArray.length) requestAnimationFrame(tick);
-                    }
-
-                    tick();
-
-                    source.onended = () => {
-                        currentMorphSil();
-                        resetMouthSmoothFast();
-                        if (playInterview != 0) {
-                            $('#micOn').show();
-                            $('#micOff').hide();
-                        }
-                        $('#recordBtn').prop('disabled', false);
-                        $('#playBtn').prop('disabled', false);
-                        audioCtx.close(); // liberar recursos
-                    };
-
-                } catch (err) {
-                    console.error("Error reproduciendo audio:", err);
-                }
-            },
-            (err) => {
-                console.error(err);
-            }
-        );
+        return visemes;
     }
 
     async function saludo() {
@@ -484,7 +503,8 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
             $('#micOff').show();
             $('#micOn').hide();
             stopCounter();
-            recognizer.stopContinuousRecognitionAsync();
+            await stopAudioRecording({ releaseStream: true });
+            releaseAudioStream();
 
             let username = $('#username').val();
             let chat = await getchatHistory();
@@ -494,7 +514,6 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
         }
 
     });
-
 </script>
 
 
