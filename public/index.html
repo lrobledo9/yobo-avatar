@@ -56,6 +56,8 @@
 <script src="/assets/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/camera.js"></script>
 <script src="/js/n8nService.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/login.js"></script>
 <script>
     const urlParams = new URLSearchParams(window.location.search);
    
@@ -73,6 +75,8 @@
             });
             return;
         }
+        localStorage.setItem("username", username);
+        await login();
 
         const application = urlParams.get('application'); // "123"
         const dataVacant = await getVacant(application);
@@ -90,7 +94,7 @@
             localStorage.setItem("application", application);
             localStorage.setItem("vacant", dataVacant.vacant);
             localStorage.setItem("interviewid", dataVacant.interviewid);
-            localStorage.setItem("username", username);
+            
             window.location.href = `/chat`;
         }
 
