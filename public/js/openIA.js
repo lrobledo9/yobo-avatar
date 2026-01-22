@@ -8,7 +8,7 @@ let questionsData = null;
 let controlador;
 
 
-export const getQuestionsprompt = async () => {
+export const getQuestionsPrompt = async () => {
     const data = await getQuestions(application);
     questionsData = data;
 }

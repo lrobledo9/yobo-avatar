@@ -9,8 +9,8 @@ async function getQuestions(id) {
     try {
         let questionTxt = '';
         data.forEach(question => {
-            let questionAux = JSON.parse(question.question)
-            questionTxt += `- ${questionAux.pregunta}\n`
+            //let questionAux = JSON.parse(question.question)
+            questionTxt += `- ${question.question}\n`
         });
         return { 'txt': questionTxt, 'length': data.length }
 

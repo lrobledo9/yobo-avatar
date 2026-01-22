@@ -137,7 +137,7 @@
     //import { initAwsSpeech, speakWithPolly } from '/js/awsSpeech.js'
     import { ttsElevnlabs } from '/js/elevenlabs.js'
     import { startAudioRecording, stopAudioRecording, releaseAudioStream } from '/js/audioRecorder.js'
-    import { generateChatResponse, getchatHistory, getQuestionsprompt, transcribeAudio } from '/js/openIA.js'
+    import { generateChatResponse, getchatHistory, getQuestionsPrompt, transcribeAudio } from '/js/openIA.js'
     import { animate, applyViseme, currentMorphSil, phonemeToViseme, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
 
 
@@ -177,7 +177,7 @@
         await login();
         //await initAwsSpeech();
         //await accessKeyAzure();
-        await getQuestionsprompt();
+        await getQuestionsPrompt();
         await toggleCamera();
         await animate();
          
