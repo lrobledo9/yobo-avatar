@@ -37,7 +37,9 @@
         <div class="container text-center">
             <div class="row align-items-center">
                 <div class="col text-start d-flex align-items-center justify-content-start gap-2">
-                    <span id="recordingIndicator" style="display:none;">🔴</span>
+                    <span id="recordingIndicator" style="display:none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#EA3323"><path d="M158-242q-37-50-57.5-110.5T80-480q0-67 20-127t57-110l58 57q-26 38-40.5 83.5T160-480q0 51 14.5 97t40.5 84l-57 57ZM480-80q-67 0-127-20t-110-57l57-58q38 26 83.5 40.5T480-160q51 0 96.5-14.5T660-215l57 58q-50 37-110 57T480-80Zm322-162-57-57q26-38 40.5-84t14.5-97q0-51-14.5-96.5T745-660l58-57q37 50 57 110t20 127q0 67-20.5 127.5T802-242ZM299-745l-57-57q50-37 110.5-57.5T480-880q68 0 128 20.5T718-802l-57 57q-38-26-84-40.5T480-800q-51 0-97 14.5T299-745Zm181 465q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280Z"/></svg>
+                    </span>
                     <span id="counter" class="fw-bold">00:00:00</span>
                 </div>
 
@@ -88,7 +90,7 @@
     <!-- CHAT -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
         <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">💬 Transcripción</h5>
+            <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px" fill="#434343"><path d="M240-400h480v-66.67H240V-400Zm0-126.67h480v-66.66H240v66.66Zm0-126.66h480V-720H240v66.67ZM880-80 720-240H146.67q-27 0-46.84-19.83Q80-279.67 80-306.67v-506.66q0-27 19.83-46.84Q119.67-880 146.67-880h666.66q27 0 46.84 19.83Q880-840.33 880-813.33V-80ZM146.67-306.67h602l64.66 68.34v-575H146.67v506.66Zm0 0v-506.66 506.66Z"/></svg> Transcripción</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
 
@@ -121,7 +123,28 @@
     const validVacant = localStorage.getItem('vacant');
     if (validApplication == null || validUsername == null || validVacant == null) {
         window.location.href = `/`;
-    }    
+    } 
+    history.pushState(null, null, location.href); 
+    window.onpopstate = function () {
+        //history.pushState(null, null, location.href);
+        Swal.fire({
+            title: '¿Seguro que quieres salir de la entrevista?',
+            text: `El reclutador no podrá decidir si eres el candidato adecuado para la vacante de ${localStorage.getItem('vacant')}`,
+            icon: 'question',
+            confirmButtonText: 'Salir de la entrevista',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#63B31B',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showCancelButton: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                window.location.href = `https://yobo.app/`;
+            }
+        });
+    };
+     
 </script>
 
 <script type="importmap">
