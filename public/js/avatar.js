@@ -39,7 +39,7 @@ let spineBone = null;
 //https://models.readyplayer.me/68daf025b56587edda9cb3ce.glb
 //Female
 // https://models.readyplayer.me/6938861a347390125d7f7007.glb
-loader.load("https://models.readyplayer.me/68daf025b56587edda9cb3ce.glb", gltf => {
+loader.load("/assets/avatar/68afa583e195aa99fc4b418a.glb", gltf => {
     avatarMesh = gltf.scene;
     avatarMesh.scale.set(3, 3, 3);
     avatarMesh.position.y = -3.8;
