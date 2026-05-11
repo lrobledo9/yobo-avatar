@@ -4,14 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Yobo</title>
 </head>
 <link rel="stylesheet" href="/assets/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="/css/caht.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <link rel="stylesheet" href="/assets/sweetalert2/sweetalert2.min.css">
 
+ <style>
+     .fondo-color {
+      background-color: #63B31B; /* color de fondo */
+      min-height: 100vh;          /* ocupa toda la pantalla */
+      display: flex;              /* centra el contenido */
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .fondo-color img {
+      width: 147px;
+      height: auto;    /* mantiene la proporción */
+      border-radius: 100%; /* opcional: bordes redondeados */
+    }
+  </style>
+
 <body>
+
+    <div class="fondo-color" style="position: fixed;">
+        <div>
+            <img src="/assets/images/profile.svg" style="background-color: #63B31B">
+            <p class="text-white" style="font-size: 30px;" ><strong>YOBO</strong></p>
+        </div>
+    </div>
+
     <div class="container" style="position: fixed;">
         <div class="row">
             <div class="col-lg-6">
@@ -147,13 +173,13 @@
      
 </script>
 
-<script type="importmap">
+<!--<script type="importmap">
     {
       "imports": {
         "three": "https://unpkg.com/three/build/three.module.js"
       }
     }
-</script>
+</script>-->
 
 <script type="module">
     //import { accessKeyAzure, recognizer, synthesizer } from '/js/azureTTS.js'
@@ -161,7 +187,7 @@
     import { ttsElevnlabs } from '/js/elevenlabs.js'
     import { startAudioRecording, stopAudioRecording, releaseAudioStream } from '/js/audioRecorder.js'
     import { generateChatResponse, getchatHistory, getQuestionsPrompt, transcribeAudio } from '/js/openIA.js'
-    import { animate, applyViseme, currentMorphSil, phonemeToViseme, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
+    //import { animate, applyViseme, currentMorphSil, phonemeToViseme, resetMouthSmoothFast, setExpression, detectEmotion } from '/js/avatar.js';
 
 
 
@@ -202,19 +228,18 @@
         //await accessKeyAzure();
         await getQuestionsPrompt();
         await toggleCamera();
-        await animate();
+        //await animate();
          
         $("#loading").addClass("oculto");
         showThinkingIcon();
         setTimeout(async function () {
-           
             speakAvatar(`¡Hola! ¡Qué gusto saludarte!
-Para comenzar tu entrevista, toca el botón Play.
-Cuando yo te haga una pregunta, el micrófono se apagará automáticamente…
-Esto es para evitar que tu respuesta se envíe por accidente mientras hablo.
-Cuando quieras responder, mantén presionado el botón del micrófono mientras hablas, y luego suéltalo para enviar tu respuesta.
-¡Fácil, verdad?
-¿Listo para comenzar?`)
+                Para comenzar tu entrevista, toca el botón Play.
+                Cuando yo te haga una pregunta, el micrófono se apagará automáticamente…
+                Esto es para evitar que tu respuesta se envíe por accidente mientras hablo.
+                Cuando quieras responder, mantén presionado el botón del micrófono mientras hablas, y luego suéltalo para enviar tu respuesta.
+                ¡Fácil, verdad?
+                ¿Listo para comenzar?`)
         }, 3000);
     }
     window.addEventListener('DOMContentLoaded', init);
@@ -370,7 +395,7 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
             source.connect(audioCtx.destination);
             source.start();
             hideThinkingIcon();
-            const visemesArray = alignmentsToVisemes(alignments);
+            /*const visemesArray = alignmentsToVisemes(alignments);
 
             let i = 0;
             function tick() {
@@ -401,11 +426,11 @@ Cuando quieras responder, mantén presionado el botón del micrófono mientras h
                 if (i < visemesArray.length) requestAnimationFrame(tick);
             }
 
-            tick();
+            tick();*/
 
             source.onended = () => {
-                currentMorphSil();
-                resetMouthSmoothFast();
+                //currentMorphSil();
+                //resetMouthSmoothFast();
                 if (playInterview != 0) {
                     $('#micOn').show();
                     $('#micOff').hide();
