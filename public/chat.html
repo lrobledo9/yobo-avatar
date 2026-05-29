@@ -384,7 +384,11 @@
             const { audioBuffer, alignments } = await ttsElevnlabs(texto);
 
 
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const recordingAudioCtx = window.getRecordingAudioContext
+                ? await window.getRecordingAudioContext()
+                : null;
+            const audioCtx = recordingAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            const shouldCloseAudioCtx = !recordingAudioCtx;
             const playableBuffer = audioBuffer instanceof ArrayBuffer
                 ? audioBuffer.slice(0)
                 : await new Blob([audioBuffer]).arrayBuffer();
@@ -392,7 +396,12 @@
 
             const source = audioCtx.createBufferSource();
             source.buffer = decodedData;
-            source.connect(audioCtx.destination);
+            const connectedToRecording = window.connectBotAudioSourceToRecording
+                ? window.connectBotAudioSourceToRecording(source)
+                : false;
+            if (!connectedToRecording) {
+                source.connect(audioCtx.destination);
+            }
             source.start();
             hideThinkingIcon();
             /*const visemesArray = alignmentsToVisemes(alignments);
@@ -437,7 +446,9 @@
                 }
                 $('#recordBtn').prop('disabled', false);
                 $('#playBtn').prop('disabled', false);
-                audioCtx.close(); // liberar recursos
+                if (shouldCloseAudioCtx) {
+                    audioCtx.close(); // liberar recursos
+                }
             };
 
         } catch (error) {
